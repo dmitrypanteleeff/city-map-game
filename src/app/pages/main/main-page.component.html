@@ -1,0 +1,20 @@
+<div>
+  <div class="container">
+    <div class="row rounded-5 border">
+      <app-map-game
+        class="col-12 col-md-8 p-0 rounded-5 overflow-hidden vh-100"
+      ></app-map-game>
+      <ng-container *tuiLet="_breakpoint$ | async as breakpoint">
+        <ng-container *ngIf="breakpoint !== 'mobile'">
+          <div class="col-12 col-md-4">
+            <div>Колонка</div>
+            <div>Колонка</div>
+            <div>Колонка</div>
+            <div>Колонка</div>
+            <div>Колонка</div>
+          </div>
+        </ng-container>
+      </ng-container>
+    </div>
+  </div>
+</div>

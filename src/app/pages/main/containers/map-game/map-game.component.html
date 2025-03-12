@@ -1,0 +1,40 @@
+<!-- <div>
+  <div
+    id="map"
+    leaflet
+    (leafletMapReady)="onMapReady($event)"
+    [leafletOptions]="mapOptions"
+    [leafletLayersControl]="layersControl"
+  ></div>
+</div> -->
+
+<form class="h-100" [formGroup]="form" (submit)="findCity()">
+  <div
+    id="map"
+    class="h-100"
+    leaflet
+    [leafletOptions]="mapOptions"
+    (leafletMapReady)="onMapReady($event)"
+  >
+    <div
+      class="container position-relative d-flex flex-column justify-content-end map-game__content"
+    >
+      <ng-container *tuiLet="_breakpoint$ | async as breakpoint">
+        <tui-textfield
+          class="mt-4"
+          [tuiTextfieldSize]="breakpoint | func : resizeElements"
+        >
+          <!-- <tui-textfield class="mt-1" iconEnd="@tui.search"> -->
+          <!-- <label tuiLabel>I am a label</label> -->
+          <!-- <tui-icon tuiTooltip="I am a hint" /> -->
+          <input
+            placeholder="Введите город"
+            tuiTextfield
+            formControlName="city"
+          />
+          <tui-icon icon="@tui.search" (click)="findCity()" />
+        </tui-textfield>
+      </ng-container>
+    </div>
+  </div>
+</form>
