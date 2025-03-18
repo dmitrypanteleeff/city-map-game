@@ -8,32 +8,40 @@ import {
   StateContext,
 } from '@ngxs/store';
 
-//import { OptionsModel } from '../types/options.interface';
+//import { IOptionsModel } from '../types/options.interface';
 import { GameAction } from './game.actions';
 
 import { catchError, delay, takeUntil, tap } from 'rxjs';
-import { CityModel, OptionsModel } from '../models';
+import { ICityDBModel, ICityModel, IOptionsModel, Step } from '../models';
 import { MapGameApiService } from '../services/map-game-api.services';
 import { TuiAlertService, TuiDialogService } from '@taiga-ui/core';
 import { DestroyService } from '../../../shared/services/destroy.service';
-//import { CityModel } from '../types/cities.interface';
+import { storedCity } from '../main-page.config';
+import { getCityLastLetter, removeUnnecessaryCharacters } from '../utils';
+//import { ICityModel } from '../types/cities.interface';
 
 export interface GameStateModel {
   score: number;
-  options: OptionsModel;
-  cityList: CityModel[];
-  city?: CityModel;
+  options: IOptionsModel;
+  storedCityList: ICityDBModel[];
+  usedCityList: ICityDBModel[];
+  city: string;
+  step: Step;
 }
 
 @State<GameStateModel>({
   name: 'game',
   defaults: {
-    cityList: [],
+    //storedCityList: storedCity,
+    storedCityList: [],
+    usedCityList: [],
     options: {
       currentLanguage: 'rus',
       languages: ['eng', 'rus'],
     },
     score: 0,
+    step: 'user',
+    city: '',
   },
 })
 @Injectable()
@@ -41,19 +49,25 @@ export class GameState {
   //constructor(private readonly _api: MapGameApiService) {}
   private readonly _alerts = inject(TuiAlertService);
   private readonly _destroy$ = inject(DestroyService);
+  private readonly _api = inject(MapGameApiService);
 
   @Selector()
-  static cityList$(state: GameStateModel): CityModel[] {
-    return state.cityList;
+  static storedCityList$(state: GameStateModel): ICityDBModel[] {
+    return state.storedCityList;
   }
 
   @Selector()
-  static options$(state: GameStateModel): OptionsModel {
+  static usedCityList$(state: GameStateModel): ICityDBModel[] {
+    return state.usedCityList;
+  }
+
+  @Selector()
+  static options$(state: GameStateModel): IOptionsModel {
     return state.options;
   }
 
   @Selector()
-  static city$(state: GameStateModel): CityModel | undefined {
+  static city$(state: GameStateModel): string {
     return state.city;
   }
 
@@ -62,83 +76,80 @@ export class GameState {
     return state.score;
   }
 
-  //   @Action(OffersAction.LoadFeatureCollection)
-  //   LoadFeatureCollection(ctx: StateContext<GameStateModel>) {
-  //     return this._api.LoadFeatureCollection().pipe(
-  //       tap((res) =>
-  //         ctx.dispatch(new OffersAction.LoadFeatureCollectionSuccess(res))
-  //       ),
-  //       catchError((error) =>
-  //         ctx.dispatch(new OffersAction.LoadFeatureCollectionError(error))
-  //       )
-  //     );
-  //   }
+  @Selector()
+  static step$(state: GameStateModel): Step {
+    return state.step;
+  }
 
-  //   @Action(OffersAction.LoadFeatureCollectionSuccess)
-  //   LoadFeatureCollectionSuccess(
-  //     ctx: StateContext<GameStateModel>,
-  //     { payload }: OffersAction.LoadFeatureCollectionSuccess
-  //   ) {
-  //     ctx.patchState({
-  //       loadFeatureCollection: true,
-  //     });
-  //   }
+  @Action(GameAction.GetCityList)
+  GetCityList(
+    ctx: StateContext<GameStateModel>,
+    { character }: GameAction.GetCityList
+  ) {
+    const state = ctx.getState();
+    const { currentLanguage } = state.options;
+    return this._api.getListCityFromLetter(currentLanguage, character).pipe(
+      tap((res) => ctx.dispatch(new GameAction.GetCityListSuccess(res.data))),
+      /*TODO Добавить логику повторного вызова*/
+      catchError((error) => ctx.dispatch(new GameAction.Error(error)))
+    );
+  }
 
-  //   @Action(OffersAction.LoadFeatureCollectionError)
-  //   LoadFeatureCollectionError(
-  //     ctx: StateContext<GameStateModel>,
-  //     { payload }: OffersAction.LoadFeatureCollectionError
-  //   ) {
-  //     ctx.patchState({
-  //       loadFeatureCollection: false,
-  //     });
-  //     ctx.dispatch(new OffersAction.Error(payload));
-  //   }
+  @Action(GameAction.GetCityListSuccess)
+  GetCityListSuccess(
+    ctx: StateContext<GameStateModel>,
+    { cities }: GameAction.GetCityListSuccess
+  ) {
+    let { storedCityList, city } = ctx.getState();
 
-  //   @Action(OffersAction.LoadOffersList)
-  //   LoadOffersList(ctx: StateContext<GameStateModel>) {
-  //     return this._api.LoadOffersList().pipe(
-  //       delay(2000),
-  //       tap((res) => ctx.dispatch(new OffersAction.LoadOffersListSuccess(res))),
-  //       catchError((error) =>
-  //         ctx.dispatch(new OffersAction.LoadFeatureCollectionError(error))
-  //       )
-  //     );
-  //   }
+    cities = removeUnnecessaryCharacters(cities);
+    console.log(111111, 'city in state', city);
 
-  //   @Action(OffersAction.LoadOffersListSuccess)
-  //   LoadOffersListSuccess(
-  //     ctx: StateContext<GameStateModel>,
-  //     { payload }: OffersAction.LoadOffersListSuccess
-  //   ) {
-  //     let data = payload as any;
-  //     console.log(11111, data.data);
-  //     ctx.patchState({
-  //       orderList: data.data,
-  //     });
-  //   }
+    const index = cities.findIndex(
+      (town: ICityDBModel) =>
+        town.name[0].toLowerCase() === getCityLastLetter(city)
+    );
 
-  //   @Action(OffersAction.LoadOffersListError)
-  //   LoadOffersListError(
-  //     ctx: StateContext<GameStateModel>,
-  //     { payload }: OffersAction.LoadOffersListError
-  //   ) {
-  //     ctx.patchState({
-  //       orderList: [],
-  //     });
-  //     ctx.dispatch(new OffersAction.Error(payload));
-  //   }
+    // const cityСorresponds = cities.includes(
+    //   (town: ICityDBModel) =>
+    //     town.name[0].toLowerCase() === getCityLastLetter(city)
+    // );
+    if (index !== -1) {
+      cities = cities.filter(
+        (town) => town.name[0].toLowerCase() === getCityLastLetter(city)
+      );
+      storedCityList = [...storedCityList, ...cities];
+
+      ctx.patchState({ storedCityList });
+    }
+  }
 
   @Action(GameAction.Error)
   Error(ctx: StateContext<GameStateModel>, { payload }: GameAction.Error) {
-    console.log('Error');
     this._alerts
-      .open('Basic <strong>HTML</strong>', {
+      .open(`<strong>${payload}</strong>`, {
         label: 'Ошибка!',
         appearance: 'negative',
         autoClose: 3000,
       })
       .pipe(takeUntil(this._destroy$))
       .subscribe();
+  }
+
+  @Action(GameAction.ToggleStep)
+  ToggleStep(ctx: StateContext<GameStateModel>) {
+    let { step } = ctx.getState();
+    //debugger;
+    step = step === 'user' ? 'opponent' : 'user';
+
+    ctx.patchState({ step });
+  }
+
+  @Action(GameAction.SetCityName)
+  SetCityName(
+    ctx: StateContext<GameStateModel>,
+    { city }: GameAction.SetCityName
+  ) {
+    ctx.patchState({ city });
   }
 }

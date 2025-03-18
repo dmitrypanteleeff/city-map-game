@@ -21,17 +21,22 @@
     >
       <ng-container *tuiLet="_breakpoint$ | async as breakpoint">
         <tui-textfield
-          class="mt-4"
+          class="mt-4 border"
           [tuiTextfieldSize]="breakpoint | func : resizeElements"
         >
           <!-- <tui-textfield class="mt-1" iconEnd="@tui.search"> -->
           <!-- <label tuiLabel>I am a label</label> -->
           <!-- <tui-icon tuiTooltip="I am a hint" /> -->
           <input
+            #inputCity
             placeholder="Введите город"
             tuiTextfield
+            [readOnly]="(step$ | async) === 'opponent'"
             formControlName="city"
           />
+          <!-- [readOnly]="(step$ | async) === 'opponent'" -->
+          <!-- <tui-loader size="s" /> -->
+
           <tui-icon icon="@tui.search" (click)="findCity()" />
         </tui-textfield>
       </ng-container>

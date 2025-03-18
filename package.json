@@ -19,7 +19,7 @@
     "@angular/router": "^19.2.0",
     "@bluehalo/ngx-leaflet": "^19.0.0",
     "@ngxs/devtools-plugin": "^19.0.0-dev.master-fb07d3f",
-    "@ngxs/logger-plugin": "^19.0.0-dev.master-fb07d3f",
+    "@ngxs/logger-plugin": "^19.0.0",
     "@ngxs/store": "^19.0.0-dev.master-fb07d3f",
     "@taiga-ui/cdk": "^4.26.1",
     "@taiga-ui/core": "^4.26.1",

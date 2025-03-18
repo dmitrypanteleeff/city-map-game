@@ -4,7 +4,7 @@ export const OFFERS_OPEN_STREET_MAP = L.tileLayer(
   'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
   {
     maxZoom: 18,
-    attribution: '© OpenStreetMap',
+    attribution: '© OpenStreetMap&nbsp;&nbsp;&nbsp;',
     //retina: '@2x',
     //detectRetina: true,
   }
@@ -14,7 +14,7 @@ export const OFFERS_HYBRID_MAP = L.tileLayer(
   'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   {
     maxZoom: 18,
-    attribution: '© Esri',
+    attribution: '© Esri&nbsp;&nbsp;&nbsp;',
     //retina: '@2x',
     //detectRetina: true,
     //subdomains: ['mt0', 'mt1', 'mt2', 'mt3']

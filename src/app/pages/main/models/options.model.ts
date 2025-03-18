@@ -1,5 +1,5 @@
 /** Интерфейс опций игры */
-export interface OptionsModel {
+export interface IOptionsModel {
   currentLanguage: string;
   languages: string[];
 }

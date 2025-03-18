@@ -1,10 +1,35 @@
 import * as geojson from 'geojson';
+import { ICityDBModel } from '../models';
 
 export namespace GameAction {
   /* Ошибка */
   export class Error {
     static readonly type = '[MAP_GAME page] Error';
     constructor(public readonly payload: Request) {}
+  }
+
+  /* Получить список городов по букве */
+  export class GetCityList {
+    static readonly type = '[MAP_GAME page] Get City List';
+    constructor(public readonly character: string) {}
+  }
+
+  /* Успешное получение списка городов по букве */
+  export class GetCityListSuccess {
+    static readonly type = '[MAP_GAME page] Get City List Success';
+    constructor(public readonly cities: ICityDBModel[]) {}
+  }
+
+  /* Поменять шаг */
+  export class ToggleStep {
+    static readonly type = '[MAP_GAME page] Toggle Step';
+    constructor() {}
+  }
+
+  /* Установить название города */
+  export class SetCityName {
+    static readonly type = '[MAP_GAME page] Set City Name';
+    constructor(public readonly city: string) {}
   }
 
   /* Сброс хранилища */

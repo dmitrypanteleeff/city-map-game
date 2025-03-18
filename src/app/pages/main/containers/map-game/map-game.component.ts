@@ -1,8 +1,11 @@
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   inject,
   OnInit,
+  ViewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
 import * as MapConfig from './map-game.config';
@@ -21,20 +24,52 @@ import {
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TuiTooltip } from '@taiga-ui/kit';
-import { TuiIcon, TuiTextfield } from '@taiga-ui/core';
+import { TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
 
 import { DestroyService } from '../../../../shared/services/destroy.service';
-import { filter, Subject, switchMap, takeUntil, tap } from 'rxjs';
+import {
+  catchError,
+  debounceTime,
+  delay,
+  filter,
+  from,
+  iif,
+  interval,
+  map,
+  Observable,
+  of,
+  reduce,
+  scan,
+  Subject,
+  switchMap,
+  take,
+  takeUntil,
+  tap,
+  timer,
+  withLatestFrom,
+} from 'rxjs';
 import { TuiBreakpointService } from '@taiga-ui/core';
 import {
   addMarker,
+  checkTypeCityIsCityDBModel,
+  getCityLastLetter,
   prepeareCityForSearching,
+  removeUnnecessaryCharacters,
   resizeElements,
 } from '../../utils';
-import { CityModel } from '../../models';
+import { ICityDBModel, ICityModel, Step } from '../../models';
 import { AsyncPipe } from '@angular/common';
 import { FunctionPipe } from '../../../../shared/pipes';
-import { Store } from '@ngxs/store';
+import {
+  Actions,
+  ofActionCompleted,
+  ofActionSuccessful,
+  Select,
+  Store,
+} from '@ngxs/store';
+import { GameAction } from '../../state/game.actions';
+import { GameState } from '../../state/game.state';
+import { storedCity } from '../../main-page.config';
 
 @Component({
   selector: 'app-map-game',
@@ -42,6 +77,7 @@ import { Store } from '@ngxs/store';
     LeafletModule,
     ReactiveFormsModule,
     TuiIcon,
+    TuiLoader,
     TuiTextfield,
     TuiTooltip,
     FormsModule,
@@ -51,18 +87,45 @@ import { Store } from '@ngxs/store';
   ],
   templateUrl: './map-game.component.html',
   styleUrl: './map-game.component.less',
-  providers: [DestroyService],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MapGameComponent implements OnInit {
-  private readonly destroy$ = inject(DestroyService);
+export class MapGameComponent implements OnInit, AfterViewInit {
+  private readonly _destroy$ = inject(DestroyService);
   private readonly _form = inject(MapGameFormsService);
   private readonly _store = inject(Store);
+  private readonly _actions = inject(Actions);
 
   readonly _breakpoint$ = inject(TuiBreakpointService);
 
-  readonly city$$ = new Subject<string>();
-  readonly flyToCity$$ = new Subject<CityModel>();
+  readonly city$$ = new Subject<ICityDBModel | string>();
+  readonly flyToCity$$ = new Subject<ICityModel>();
+  readonly lastCityLetter$$ = new Subject<string>();
+  readonly setCityName$$ = new Subject<string>();
+  readonly changeMove$$ = new Subject<boolean>();
+  readonly repeatSearchCity$$ = new Subject<string>();
+
+  readonly usedCityList$: Observable<ICityDBModel[]> = this._store.select(
+    GameState.usedCityList$
+  );
+  readonly storedCityList$: Observable<ICityDBModel[]> = this._store.select(
+    GameState.storedCityList$
+  );
+  readonly step$: Observable<Step> = this._store.select(GameState.step$);
+  readonly cityName$: Observable<string> = this._store.select(GameState.city$);
+
+  get storedCityList(): ICityDBModel[] {
+    return this._store.selectSnapshot(GameState.storedCityList$);
+  }
+
+  get city(): string {
+    return this._store.selectSnapshot(GameState.city$);
+  }
+
+  get step(): Step {
+    return this._store.selectSnapshot(GameState.step$);
+  }
+
+  @ViewChild('inputCity') inputCity!: ElementRef;
 
   readonly prepeareCityForSearching = prepeareCityForSearching;
   readonly resizeElements = resizeElements;
@@ -72,11 +135,9 @@ export class MapGameComponent implements OnInit {
   private provider: any;
 
   readonly form = this._form.createMapForm();
-  get city(): FormControl {
+  get cityFormCtrl(): FormControl {
     return this.form.get('city') as FormControl;
   }
-
-  protected value = '';
 
   baseLayers = {
     'Cartographic map': MapConfig.OFFERS_OPEN_STREET_MAP,
@@ -86,10 +147,14 @@ export class MapGameComponent implements OnInit {
     // 'Vehicle': this.vehicleMarker
   };
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.initializeMapOptions();
     this.initForm();
     this.initSubscriptions();
+  }
+
+  ngAfterViewInit(): void {
+    this.initAfterSubscriptions();
   }
 
   private initializeMapOptions(): void {
@@ -129,13 +194,14 @@ export class MapGameComponent implements OnInit {
 
   private initForm(): void {
     //MapGameFormsService;
+    //this._store.dispatch(new GameAction.Error);
   }
   private initSubscriptions(): void {
     //MapGameFormsService;
     this.form.valueChanges
       .pipe(
         tap((val) => console.log(111111, 'val', val)),
-        takeUntil(this.destroy$)
+        takeUntil(this._destroy$)
       )
       .subscribe();
 
@@ -143,38 +209,159 @@ export class MapGameComponent implements OnInit {
       .pipe(
         filter(Boolean),
         tap((val) => console.log(val)),
-        switchMap((city) => this.provider.search({ query: city })),
-        takeUntil(this.destroy$)
+        switchMap((city) =>
+          iif(
+            () => checkTypeCityIsCityDBModel(city),
+            of([city]),
+            this.provider.search({ query: city })
+          )
+        ),
+        catchError((error) =>
+          this._store.dispatch(new GameAction.Error(error))
+        ),
+        takeUntil(this._destroy$)
       )
       .subscribe((res) => {
         console.log('res', res);
         this.getCityName(res as any[]);
       });
 
-    this.flyToCity$$
+    this.repeatSearchCity$$
+      .pipe(
+        tap((character) =>
+          console.log(111111, 'Повторный запрос before', character)
+        ),
+        delay(5000),
+        tap((character) => console.log(111111, 'Повторный запрос', character)),
+        takeUntil(this._destroy$)
+      )
+      .subscribe((character) => {
+        console.log(1111111, 'GetCityList 2');
+        this._store.dispatch(new GameAction.GetCityList(character));
+      });
+
+    this.lastCityLetter$$
+      .pipe(
+        tap((val) => {
+          console.log(1111111, 'lastCityLetter$$', val);
+          // debugger;
+        }),
+        filter(Boolean),
+        switchMap(() => timer(10000)),
+        withLatestFrom(this.lastCityLetter$$, this.storedCityList$),
+        map(([, character, storedCityList]) => {
+          return { character, storedCityList };
+        }),
+        takeUntil(this._destroy$)
+      )
+      .subscribe((obj) => {
+        const { character, storedCityList } = obj;
+        //debugger;
+        if (
+          storedCityList.findIndex(
+            (city) => city.name[0].toLowerCase() === character
+          ) !== -1
+        ) {
+          const index = storedCityList.findIndex(
+            (city) => city.name[0].toLowerCase() === character
+          );
+          this.city$$.next(storedCityList[index]);
+        } else {
+          console.log(1111111, 'GetCityList 1');
+          this._store.dispatch(new GameAction.GetCityList(character));
+        }
+
+        /*TODO Логика
+          Заглянуть в список прихраннённых городов
+          Если есть город на букву, то this.city$$.next(город)
+          Если нет, то делать запрос this._store.dispatch(new GameAction.GetCityList(character))
+         */
+        //this._store.dispatch(new GameAction.GetCityList(character));
+      });
+
+    this.setCityName$$
       .pipe(
         filter(Boolean),
-        tap((city) => {
-          let cityCoordinates = L.latLng(city.y as number, city.x as number);
-          this.map.flyTo(cityCoordinates);
-        }),
-        // switchMap((city) =>
-        //   this.provider.search({ query: `${city.y} ${city.x}` })
-        // ),
-        takeUntil(this.destroy$)
+        tap((name) => this._store.dispatch(new GameAction.SetCityName(name))),
+        takeUntil(this._destroy$)
       )
-      .subscribe((val) => console.log(1111111, 'flyToCity', val));
+      .subscribe(() => this._store.dispatch(new GameAction.ToggleStep()));
+
+    this._actions
+      .pipe(
+        ofActionCompleted(GameAction.ToggleStep),
+        // withLatestFrom(this.step$),
+        // map(([, step]) => step),
+        switchMap(() => this.step$),
+        tap((step) => {
+          //debugger;
+          console.log(step);
+        }),
+        filter((step) => step === 'opponent'),
+
+        takeUntil(this._destroy$)
+      )
+      .subscribe(() =>
+        this.lastCityLetter$$.next(getCityLastLetter(this.city))
+      );
+
+    this._actions
+      .pipe(
+        /*TODO Срабатывает несколько раз */
+        ofActionSuccessful(GameAction.GetCityListSuccess),
+        switchMap(() => this.step$),
+        filter((step) => step === 'opponent'),
+        //take(1),
+        tap((val) => console.log(111111, 'GetCityListSuccess', val)),
+        switchMap(() => this.storedCityList$),
+        takeUntil(this._destroy$)
+      )
+      .subscribe((storedCityList) => {
+        console.log(1111111, 'storedCityList', storedCityList);
+
+        const index = storedCityList.findIndex(
+          (town) => town.name[0].toLowerCase() === getCityLastLetter(this.city)
+        );
+
+        if (index !== -1) {
+          console.log('index', index);
+          this.city$$.next(storedCityList[index]);
+          /*TODO
+            - Удалить город их списка storedCity
+            - Добавить город в список используемых
+          */
+        } else {
+          //this.repeatSearchCity$$.next(getCityLastLetter(this.city));
+        }
+      });
+  }
+
+  private initAfterSubscriptions(): void {
+    this.cityName$
+      .pipe(
+        filter((city) => !!city && this.step === 'opponent'),
+        switchMap((city) =>
+          interval(150).pipe(
+            scan((acc, value) => acc + city[value], ''),
+            tap((val) => (this.inputCity.nativeElement.value = val)),
+            take(city.length)
+          )
+        ),
+        takeUntil(this._destroy$)
+      )
+      .subscribe();
   }
 
   findCity(): void {
-    this.city$$.next(this.city.value);
+    this.city$$.next(this.cityFormCtrl.value);
   }
 
   private getCityName(results: any[]): void {
-    if (results?.length) {
+    if (results?.length === 1 && checkTypeCityIsCityDBModel(results[0])) {
+      this.cityIsExist(results[0]);
+    } else if (results?.length) {
       let target = null;
       for (let i = 0; i < results.length; i++) {
-        //results[i];
         if (
           results[i].raw.addresstype === 'city' ||
           results[i].raw.addresstype === 'town'
@@ -183,65 +370,33 @@ export class MapGameComponent implements OnInit {
           break;
         }
       }
-      const town = prepeareCityForSearching(target);
-      console.log('town', town);
 
-      !!town
-        ? this.setCity(town)
-        : console.log('Подсветить пользователю, что нет такого города');
+      this.cityIsExist(target);
     } else {
       console.log('Не найден');
     }
   }
 
-  private setCity(city: CityModel): void {
-    const { y, x, name } = city;
+  private cityIsExist(city: any): void {
+    const town = prepeareCityForSearching(city);
+    console.log('town  1', town);
+
+    !!town
+      ? this.setCity(town)
+      : console.log('Подсветить пользователю, что нет такого города');
+  }
+
+  private setCity(city: ICityModel): void {
+    const { name } = city;
 
     this.flyToCity(city);
-
-    let lastLetter = name.charAt(name.length - 1);
-    for (let i = 1; i < name.length; i++) {
-      if (
-        lastLetter === 'ь' ||
-        lastLetter === 'ъ' ||
-        lastLetter === 'ы' ||
-        lastLetter === "'" ||
-        lastLetter === '`'
-      ) {
-        lastLetter = name.charAt(name.length - i);
-      }
-    }
-    console.log('lastLetter', lastLetter);
+    this.setCityName$$.next(name);
   }
 
-  private flyToCity(city: CityModel): void {
-    const { y, x, name } = city;
-    let cityCoordinates = L.latLng(y as number, x as number);
+  private flyToCity(city: ICityModel): void {
+    const { latitude, longitude, name } = city;
+    let cityCoordinates = L.latLng(latitude as number, longitude as number);
     this.map.flyTo(cityCoordinates);
-    addMarker(this.map, name, y as number, x as number);
+    addMarker(this.map, name, latitude as number, longitude as number);
   }
-
-  // async flyToCity(cityObj: CityModel) {
-  //   const results = await this.provider.search({ query: `${cityObj.lat} ${cityObj.long}` });
-  //   console.log(1111, results)
-  //   console.log(2222, cityObj.name)
-  //   let name = cityObj.name;
-  //   let coordinateY = results[0].y;
-  //   let coordinateX = results[0].x;
-  //   let cityCoordinates = L.latLng(coordinateY, coordinateX);
-  //   this.map.flyTo(cityCoordinates);
-  //   this.addSampleMarker(name, coordinateY, coordinateX);
-  //   this.lastLetter = cityObj.name.charAt(cityObj.name.length - 1);
-  //   if (this.lastLetter === 'ь' || this.lastLetter === 'ъ' || this.lastLetter === 'ы' || this.lastLetter === "'" || this.lastLetter === "`") {
-  //     this.lastLetter = cityObj.name.charAt(cityObj.name.length - 2);
-  //   }
-  //   this.arrUsedCities.push({ name: cityObj.name.toLowerCase(), lat: coordinateY, long: coordinateX });
-  //   this.arrValidCities = this.arrValidCities.filter(item => item.name !== cityObj.name.toLowerCase());
-  //   this.arrValidCities = this.arrValidCities.filter((item, index) => { // Убираем повторяющиеся значения
-  //     return this.arrValidCities.indexOf(item) === index
-  //   });
-  //   console.log('this.arrUsedCities from flyToCity', this.arrUsedCities);
-  //   console.log('this.arrUsedCities cityObj', cityObj.name);
-  //   console.log('this.arrValidCities from flyToCity', this.arrValidCities);
-  // }
 }
