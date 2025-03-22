@@ -71,6 +71,10 @@ import {
 import { GameAction } from '../../state/game.actions';
 import { GameState } from '../../state/game.state';
 import { storedCity } from '../../main-page.config';
+import {
+  isNullOrEmptyString,
+  isNullOrUndefined,
+} from '../../../../shared/utils';
 
 @Component({
   selector: 'app-map-game',
@@ -214,6 +218,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     this.city$$
       .pipe(
         filter(Boolean),
+        debounceTime(300),
         tap((val) => console.log(val)),
         switchMap((city) =>
           iif(
@@ -276,13 +281,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
           console.log(1111111, 'GetCityList 1');
           this._store.dispatch(new GameAction.GetCityList(character));
         }
-
-        /*TODO Логика
-          Заглянуть в список прихраннённых городов
-          Если есть город на букву, то this.city$$.next(город)
-          Если нет, то делать запрос this._store.dispatch(new GameAction.GetCityList(character))
-         */
-        //this._store.dispatch(new GameAction.GetCityList(character));
       });
 
     this.setCityName$$
@@ -376,6 +374,22 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   findCity(): void {
+    /* TODO
+      Добавить здесь проверку на корректно введённую букву. Либо в другом месте
+    */
+    // if (isNullOrEmptyString(this.city)) {
+    //   console.log('1 Введите город на букву', getCityLastLetter(this.city));
+    //   return;
+    // }
+    if (
+      !isNullOrEmptyString(this.city) &&
+      this.cityFormCtrl.value.trim()[0].toLowerCase() !==
+        getCityLastLetter(this.city)
+    ) {
+      console.log(this.cityFormCtrl.value.trim()[0]);
+      console.log('2 Введите город на букву', getCityLastLetter(this.city));
+      return;
+    }
     this.city$$.next(this.cityFormCtrl.value);
   }
 
@@ -403,6 +417,11 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   private cityIsExist(city: any): void {
     const town = prepeareCityForSearching(city);
     console.log('town  1', town);
+
+    /* TODO
+    Проверка - совпадает ли первая буква города с буквой на которую нужно было вводить город
+    
+    */
 
     const townIsUsed = this.usedCityList.find(
       (item) => item.name === town?.name

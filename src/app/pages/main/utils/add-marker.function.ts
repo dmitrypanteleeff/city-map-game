@@ -6,10 +6,9 @@ export function addMarker(map: L.Map, name: string, y: number, x: number) {
     L.icon({
       iconSize: [25, 41],
       iconAnchor: [13, 41],
-      iconUrl: './assets/marker.svg',
+      iconUrl: 'marker.svg',
     })
   );
-  console.log('name', name);
 
   marker.addTo(map).on('click', function (e) {
     console.log(e.latlng);
