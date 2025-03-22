@@ -33,6 +33,7 @@
             tuiTextfield
             [readOnly]="(step$ | async) === 'opponent'"
             formControlName="city"
+            (click)="stopPropogation($event)"
           />
           <!-- [readOnly]="(step$ | async) === 'opponent'" -->
           <!-- <tui-loader size="s" /> -->

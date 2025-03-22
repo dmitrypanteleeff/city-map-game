@@ -31,6 +31,7 @@ import {
   catchError,
   debounceTime,
   delay,
+  distinctUntilChanged,
   filter,
   from,
   iif,
@@ -117,6 +118,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     return this._store.selectSnapshot(GameState.storedCityList$);
   }
 
+  get usedCityList(): ICityDBModel[] {
+    return this._store.selectSnapshot(GameState.usedCityList$);
+  }
+
   get city(): string {
     return this._store.selectSnapshot(GameState.city$);
   }
@@ -190,6 +195,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     });
     this.provider = provider;
     this.map.addControl(searchControl);
+    this.map.doubleClickZoom.disable();
   }
 
   private initForm(): void {
@@ -290,9 +296,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     this._actions
       .pipe(
         ofActionCompleted(GameAction.ToggleStep),
-        // withLatestFrom(this.step$),
-        // map(([, step]) => step),
-        switchMap(() => this.step$),
+        withLatestFrom(this.step$),
+        map(([, step]) => step),
+        //switchMap(() => this.step$),
+        distinctUntilChanged(),
         tap((step) => {
           //debugger;
           console.log(step);
@@ -307,31 +314,47 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
     this._actions
       .pipe(
-        /*TODO Срабатывает несколько раз */
+        ofActionSuccessful(GameAction.AddCityToUsedCityList),
+        map((obj) => obj.city.name),
+        distinctUntilChanged(),
+        //distinctUntilChanged((prev, curr) => prev.name === curr.name),
+        tap((val) => console.log(4444, val)),
+        takeUntil(this._destroy$)
+      )
+      .subscribe((name) =>
+        this._store.dispatch(new GameAction.DeleteCityFromStoredCityList(name))
+      );
+
+    this._actions
+      .pipe(
         ofActionSuccessful(GameAction.GetCityListSuccess),
-        switchMap(() => this.step$),
+        tap((val) => console.log(111111, 'Проверить список городов', val)),
+        withLatestFrom(this.step$),
+        map(([, step]) => step),
+        //switchMap(() => this.step$),
+        tap((val) => console.log(111111, 'Проверить шаг', val)),
         filter((step) => step === 'opponent'),
+        //distinctUntilChanged(),
         //take(1),
         tap((val) => console.log(111111, 'GetCityListSuccess', val)),
-        switchMap(() => this.storedCityList$),
+        withLatestFrom(this.storedCityList$),
+        map(([, storedCityList]) => storedCityList),
+        //switchMap(() => this.storedCityList$),
         takeUntil(this._destroy$)
       )
       .subscribe((storedCityList) => {
         console.log(1111111, 'storedCityList', storedCityList);
+        const cityList = storedCityList as ICityDBModel[];
 
-        const index = storedCityList.findIndex(
+        const index = cityList.findIndex(
           (town) => town.name[0].toLowerCase() === getCityLastLetter(this.city)
         );
 
         if (index !== -1) {
           console.log('index', index);
-          this.city$$.next(storedCityList[index]);
-          /*TODO
-            - Удалить город их списка storedCity
-            - Добавить город в список используемых
-          */
+          this.city$$.next(cityList[index]);
         } else {
-          //this.repeatSearchCity$$.next(getCityLastLetter(this.city));
+          this.repeatSearchCity$$.next(getCityLastLetter(this.city));
         }
       });
   }
@@ -381,6 +404,18 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     const town = prepeareCityForSearching(city);
     console.log('town  1', town);
 
+    const townIsUsed = this.usedCityList.find(
+      (item) => item.name === town?.name
+    );
+    if (!!townIsUsed) {
+      if (this.step === 'user') {
+        console.log('Такой город уже был. Введите другой');
+        return;
+      }
+      console.log('Логика от компа');
+      return;
+    }
+
     !!town
       ? this.setCity(town)
       : console.log('Подсветить пользователю, что нет такого города');
@@ -390,6 +425,8 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     const { name } = city;
 
     this.flyToCity(city);
+    this._store.dispatch(new GameAction.AddCityToUsedCityList(city));
+
     this.setCityName$$.next(name);
   }
 
@@ -398,5 +435,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     let cityCoordinates = L.latLng(latitude as number, longitude as number);
     this.map.flyTo(cityCoordinates);
     addMarker(this.map, name, latitude as number, longitude as number);
+  }
+
+  stopPropogation(event: Event): void {
+    console.log(1111);
+    event.stopImmediatePropagation();
   }
 }

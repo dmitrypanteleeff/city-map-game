@@ -20,6 +20,18 @@ export namespace GameAction {
     constructor(public readonly cities: ICityDBModel[]) {}
   }
 
+  /* Удаление города из списка прихранённых городов*/
+  export class DeleteCityFromStoredCityList {
+    static readonly type = '[MAP_GAME page] Delete City From Stored City List';
+    constructor(public readonly name: string) {}
+  }
+
+  /* Добавление города в список используемых городов */
+  export class AddCityToUsedCityList {
+    static readonly type = '[MAP_GAME page] Add City To Used City List';
+    constructor(public readonly city: ICityDBModel) {}
+  }
+
   /* Поменять шаг */
   export class ToggleStep {
     static readonly type = '[MAP_GAME page] Toggle Step';

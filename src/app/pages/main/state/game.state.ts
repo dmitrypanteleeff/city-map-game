@@ -32,8 +32,8 @@ export interface GameStateModel {
 @State<GameStateModel>({
   name: 'game',
   defaults: {
-    //storedCityList: storedCity,
-    storedCityList: [],
+    storedCityList: storedCity,
+    //storedCityList: [],
     usedCityList: [],
     options: {
       currentLanguage: 'rus',
@@ -100,10 +100,14 @@ export class GameState {
     ctx: StateContext<GameStateModel>,
     { cities }: GameAction.GetCityListSuccess
   ) {
-    let { storedCityList, city } = ctx.getState();
+    let { usedCityList, storedCityList, city } = ctx.getState();
 
     cities = removeUnnecessaryCharacters(cities);
     console.log(111111, 'city in state', city);
+
+    usedCityList.forEach((usedCity) => {
+      cities = cities.filter((city) => city.name !== usedCity.name);
+    });
 
     const index = cities.findIndex(
       (town: ICityDBModel) =>
@@ -122,6 +126,26 @@ export class GameState {
 
       ctx.patchState({ storedCityList });
     }
+  }
+
+  @Action(GameAction.DeleteCityFromStoredCityList)
+  DeleteCityFromStoredCityList(
+    ctx: StateContext<GameStateModel>,
+    { name }: GameAction.DeleteCityFromStoredCityList
+  ) {
+    let { storedCityList } = ctx.getState();
+    storedCityList = storedCityList.filter((city) => city.name !== name);
+    ctx.patchState({ storedCityList });
+  }
+
+  @Action(GameAction.AddCityToUsedCityList)
+  AddCityToUsedCityList(
+    ctx: StateContext<GameStateModel>,
+    { city }: GameAction.AddCityToUsedCityList
+  ) {
+    let { usedCityList } = ctx.getState();
+    usedCityList = [...usedCityList, city];
+    ctx.patchState({ usedCityList });
   }
 
   @Action(GameAction.Error)
