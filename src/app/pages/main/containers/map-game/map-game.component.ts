@@ -23,7 +23,7 @@ import {
 } from 'leaflet';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TuiTooltip } from '@taiga-ui/kit';
+import { TuiChip, TuiTooltip } from '@taiga-ui/kit';
 import { TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
 
 import { DestroyService } from '../../../../shared/services/destroy.service';
@@ -54,12 +54,13 @@ import {
   addMarker,
   checkTypeCityIsCityDBModel,
   getCityLastLetter,
+  getRandomSymbol,
   prepeareCityForSearching,
   removeUnnecessaryCharacters,
   resizeElements,
 } from '../../utils';
 import { ICityDBModel, ICityModel, Step } from '../../models';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { FunctionPipe } from '../../../../shared/pipes';
 import {
   Actions,
@@ -79,10 +80,12 @@ import {
 @Component({
   selector: 'app-map-game',
   imports: [
+    CommonModule,
     LeafletModule,
     ReactiveFormsModule,
     TuiIcon,
     TuiLoader,
+    TuiChip,
     TuiTextfield,
     TuiTooltip,
     FormsModule,
@@ -115,6 +118,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly storedCityList$: Observable<ICityDBModel[]> = this._store.select(
     GameState.storedCityList$
   );
+  readonly city$: Observable<string> = this._store.select(GameState.city$);
   readonly step$: Observable<Step> = this._store.select(GameState.step$);
   readonly cityName$: Observable<string> = this._store.select(GameState.city$);
 
@@ -134,10 +138,16 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     return this._store.selectSnapshot(GameState.step$);
   }
 
+  get currentLanguage(): string {
+    return this._store.selectSnapshot(GameState.currentLanguage$);
+  }
+
   @ViewChild('inputCity') inputCity!: ElementRef;
 
   readonly prepeareCityForSearching = prepeareCityForSearching;
   readonly resizeElements = resizeElements;
+  readonly isNullOrEmptyString = isNullOrEmptyString;
+  readonly getCityLastLetter = getCityLastLetter;
 
   private map!: L.Map;
   public mapOptions!: L.MapOptions;
@@ -203,6 +213,9 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   private initForm(): void {
+    this._store.dispatch(
+      new GameAction.SetCityName(getRandomSymbol(this.currentLanguage))
+    );
     //MapGameFormsService;
     //this._store.dispatch(new GameAction.Error);
   }

@@ -28,7 +28,7 @@ export class MapGameApiService {
       'X-RapidAPI-Key': `${rapidApiKey}`,
       'X-RapidAPI-Host': `${rapidApiHost}`,
     };
-    const numPrefix = getRandomNumber();
+    const numPrefix = getRandomNumber(20);
     let bodyRequest = `${urlLetterCity}${numPrefix}${urlLetterCityNamePrefix}${character}${languageCode}${urlLetterCityMinPopulation}`;
     return this._http.get<any>(bodyRequest, { headers }).pipe(
       map((res: any) => {

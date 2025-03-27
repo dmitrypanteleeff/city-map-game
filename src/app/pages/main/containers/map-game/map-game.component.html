@@ -19,27 +19,74 @@
     <div
       class="container position-relative d-flex flex-column justify-content-end map-game__content"
     >
-      <ng-container *tuiLet="_breakpoint$ | async as breakpoint">
-        <tui-textfield
-          class="mt-4 border"
-          [tuiTextfieldSize]="breakpoint | func : resizeElements"
-        >
-          <!-- <tui-textfield class="mt-1" iconEnd="@tui.search"> -->
-          <!-- <label tuiLabel>I am a label</label> -->
-          <!-- <tui-icon tuiTooltip="I am a hint" /> -->
-          <input
-            #inputCity
-            placeholder="Введите город"
-            tuiTextfield
-            [readOnly]="(step$ | async) === 'opponent'"
-            formControlName="city"
-            (click)="stopPropogation($event)"
-          />
-          <!-- [readOnly]="(step$ | async) === 'opponent'" -->
-          <!-- <tui-loader size="s" /> -->
+      <ng-container
+        *tuiLet="{
+          breakpoint: _breakpoint$ | async,
+          step: step$ | async
+        } as ctx"
+      >
+        <div class="mt-4">
+          <div class="d-flex justify-content-between align-items-end mb-2">
+            <div class="d-flex flex-column">
+              <tui-chip class="map-game__score mb-1" size="xs"
+                ><span>Очки</span></tui-chip
+              >
 
-          <tui-icon icon="@tui.search" (click)="findCity()" />
-        </tui-textfield>
+              <tui-chip class="small" appearance="accent" size="xs">
+                <ng-container
+                  *ngIf="ctx.step === 'opponent'; else userChipTempl"
+                >
+                  <span>Соперник вводит город на букву </span>
+                </ng-container>
+                <ng-template #userChipTempl
+                  ><span>Введите город на букву</span></ng-template
+                >
+                <strong
+                  ><em class="text-uppercase">{{
+                    city$ | async | func : getCityLastLetter
+                  }}</em></strong
+                ></tui-chip
+              >
+            </div>
+            <div class="d-flex flex-column align-items-end">
+              <!-- <tui-chip class="map-game__score mb-1" size="xs"
+                ><span>Очки</span></tui-chip
+              > -->
+              <tui-chip class="map-game__timer" size="xs"
+                ><span>Таймер</span></tui-chip
+              >
+            </div>
+          </div>
+          <tui-textfield
+            class="border"
+            [tuiTextfieldSize]="ctx.breakpoint | func : resizeElements"
+          >
+            <!-- <tui-textfield class="mt-1" iconEnd="@tui.search"> -->
+            <!-- <label tuiLabel>I am a label</label> -->
+            <!-- <tui-icon tuiTooltip="I am a hint" /> -->
+
+            <!-- <label tuiLabel *ngIf="cityName$ | async | func : isNullOrEmptyString"
+            >Invalid</label
+          > -->
+
+            <input
+              #inputCity
+              placeholder="Введите город"
+              tuiTextfield
+              [readOnly]="ctx.step === 'opponent'"
+              formControlName="city"
+              (click)="stopPropogation($event)"
+            />
+
+            <ng-container *ngIf="ctx.step === 'opponent'">
+              <tui-loader size="s" />
+            </ng-container>
+            <!-- [readOnly]="(step$ | async) === 'opponent'" -->
+            <!-- <tui-loader size="s" /> -->
+
+            <tui-icon icon="@tui.search" (click)="findCity()" />
+          </tui-textfield>
+        </div>
       </ng-container>
     </div>
   </div>

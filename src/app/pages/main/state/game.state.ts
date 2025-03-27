@@ -17,7 +17,11 @@ import { MapGameApiService } from '../services/map-game-api.services';
 import { TuiAlertService, TuiDialogService } from '@taiga-ui/core';
 import { DestroyService } from '../../../shared/services/destroy.service';
 import { storedCity } from '../main-page.config';
-import { getCityLastLetter, removeUnnecessaryCharacters } from '../utils';
+import {
+  getCityLastLetter,
+  getRandomSymbol,
+  removeUnnecessaryCharacters,
+} from '../utils';
 //import { ICityModel } from '../types/cities.interface';
 
 export interface GameStateModel {
@@ -64,6 +68,11 @@ export class GameState {
   @Selector()
   static options$(state: GameStateModel): IOptionsModel {
     return state.options;
+  }
+
+  @Selector()
+  static currentLanguage$(state: GameStateModel): string {
+    return state.options.currentLanguage;
   }
 
   @Selector()

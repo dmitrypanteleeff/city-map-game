@@ -5,3 +5,4 @@ export { getRandomNumber } from './get-random-number.function';
 export { prepeareCityForSearching } from './prepeare-city-for-searching.function';
 export { removeUnnecessaryCharacters } from './remove-unnecessary-characters.function';
 export { resizeElements } from './resize-elements.function';
+export { getRandomSymbol } from './get-random-symbol.function';
