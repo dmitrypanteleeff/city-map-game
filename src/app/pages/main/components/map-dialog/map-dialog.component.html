@@ -1,0 +1,21 @@
+<div class="d-flex h-100">
+  <div class="container">
+    <div class="row rounded-5 border">
+      <div
+        class="d-flex flex-column align-items-center justify-content-center rounded-5 border"
+      >
+        <h1>{{ data }}</h1>
+        <p>Количество очков {{ score$ | async }}</p>
+        <button
+          tuiButton
+          class="mb-1"
+          type="button"
+          [routerLink]="['/start']"
+          (click)="resetGame()"
+        >
+          В главное меню
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
