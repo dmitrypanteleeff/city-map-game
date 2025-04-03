@@ -5,7 +5,7 @@ export namespace GameAction {
   /* Ошибка */
   export class Error {
     static readonly type = '[MAP_GAME page] Error';
-    constructor(public readonly payload: Request) {}
+    constructor(public readonly payload: Request | any) {}
   }
 
   /* Получить список городов по букве */
@@ -32,6 +32,12 @@ export namespace GameAction {
     constructor(public readonly city: ICityDBModel) {}
   }
 
+  /* Добавление очков */
+  export class AddScore {
+    static readonly type = '[MAP_GAME page] Add Score';
+    constructor(public readonly score: number) {}
+  }
+
   /* Поменять шаг */
   export class ToggleStep {
     static readonly type = '[MAP_GAME page] Toggle Step';
@@ -45,8 +51,8 @@ export namespace GameAction {
   }
 
   /* Сброс хранилища */
-  export class Reset {
-    static readonly type = '[MAP_GAME page] Reset';
+  export class ResetGame {
+    static readonly type = '[MAP_GAME page] Reset Game';
     constructor() {}
   }
 

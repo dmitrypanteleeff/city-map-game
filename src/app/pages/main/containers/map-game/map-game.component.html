@@ -29,7 +29,7 @@
           <div class="d-flex justify-content-between align-items-end mb-2">
             <div class="d-flex flex-column">
               <tui-chip class="map-game__score mb-1" size="xs"
-                ><span>Очки</span></tui-chip
+                ><span>Очки {{ score$ | async }}</span></tui-chip
               >
 
               <tui-chip class="small" appearance="accent" size="xs">
@@ -49,12 +49,16 @@
               >
             </div>
             <div class="d-flex flex-column align-items-end">
+              <!-- <app-map-timer /> -->
               <!-- <tui-chip class="map-game__score mb-1" size="xs"
                 ><span>Очки</span></tui-chip
               > -->
               <tui-chip class="map-game__timer" size="xs"
-                ><span>Таймер</span></tui-chip
-              >
+                ><span>Таймер</span
+                ><app-map-timer (onSuccess)="showDialogEndTimer()" />
+                <!-- <tui-pulse class="ms-2 me-2" [playing]="true"
+              /> -->
+              </tui-chip>
             </div>
           </div>
           <tui-textfield

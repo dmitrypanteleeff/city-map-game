@@ -5,6 +5,7 @@ import {
   ElementRef,
   inject,
   OnInit,
+  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
@@ -23,8 +24,15 @@ import {
 } from 'leaflet';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TuiChip, TuiTooltip } from '@taiga-ui/kit';
-import { TuiIcon, TuiLoader, TuiTextfield } from '@taiga-ui/core';
+import { TuiChip, TuiPulse, TuiTooltip } from '@taiga-ui/kit';
+import {
+  tuiDialog,
+  TuiDialogContext,
+  TuiDialogService,
+  TuiIcon,
+  TuiLoader,
+  TuiTextfield,
+} from '@taiga-ui/core';
 
 import { DestroyService } from '../../../../shared/services/destroy.service';
 import {
@@ -76,10 +84,15 @@ import {
   isNullOrEmptyString,
   isNullOrUndefined,
 } from '../../../../shared/utils';
+import { MapTimerComponent } from '../../components/map-timer/map-timer.component';
+import { MapDialogComponent } from '../../components/map-dialog/map-dialog.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-map-game',
   imports: [
+    TuiPulse,
+    MapTimerComponent,
     CommonModule,
     LeafletModule,
     ReactiveFormsModule,
@@ -96,12 +109,14 @@ import {
   templateUrl: './map-game.component.html',
   styleUrl: './map-game.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [DestroyService],
 })
 export class MapGameComponent implements OnInit, AfterViewInit {
   private readonly _destroy$ = inject(DestroyService);
   private readonly _form = inject(MapGameFormsService);
   private readonly _store = inject(Store);
   private readonly _actions = inject(Actions);
+  private readonly _router = inject(Router);
 
   readonly _breakpoint$ = inject(TuiBreakpointService);
 
@@ -121,6 +136,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly city$: Observable<string> = this._store.select(GameState.city$);
   readonly step$: Observable<Step> = this._store.select(GameState.step$);
   readonly cityName$: Observable<string> = this._store.select(GameState.city$);
+  readonly score$: Observable<number> = this._store.select(GameState.score$);
 
   get storedCityList(): ICityDBModel[] {
     return this._store.selectSnapshot(GameState.storedCityList$);
@@ -165,6 +181,12 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   overlays = {
     // 'Vehicle': this.vehicleMarker
   };
+
+  private readonly dialog = tuiDialog(MapDialogComponent, {
+    dismissible: true,
+    size: 'fullscreen',
+    closeable: false,
+  });
 
   ngOnInit(): void {
     this.initializeMapOptions();
@@ -266,6 +288,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
     this.lastCityLetter$$
       .pipe(
+        //distinctUntilChanged(),
         tap((val) => {
           console.log(1111111, 'lastCityLetter$$', val);
           // debugger;
@@ -328,6 +351,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         ofActionSuccessful(GameAction.AddCityToUsedCityList),
         map((obj) => obj.city.name),
         distinctUntilChanged(),
+        tap(() => {
+          const score = this.step === 'user' ? 100 : 50;
+          this._store.dispatch(new GameAction.AddScore(score));
+        }),
         //distinctUntilChanged((prev, curr) => prev.name === curr.name),
         tap((val) => console.log(4444, val)),
         takeUntil(this._destroy$)
@@ -473,4 +500,24 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     console.log(1111);
     event.stopImmediatePropagation();
   }
+
+  showDialogEndTimer(): void {
+    this.dialog('Время вышло')
+      //.pipe(takeUntil(this._destroy$))
+      .subscribe({
+        next: (data) => {
+          console.info(`Dialog emitted data = ${data}`);
+        },
+        complete: () => {
+          console.info('Dialog closed');
+          //this._router.navigate(['/start']);
+        },
+      });
+  }
+
+  // private showDialog(content: TemplateRef<TuiDialogContext>): void {
+  //   this._dialogs
+  //     .open(content, { dismissible: true, size: 'fullscreen' })
+  //     .subscribe();
+  // }
 }

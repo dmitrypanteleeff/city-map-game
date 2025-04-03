@@ -160,7 +160,7 @@ export class GameState {
   @Action(GameAction.Error)
   Error(ctx: StateContext<GameStateModel>, { payload }: GameAction.Error) {
     this._alerts
-      .open(`<strong>${payload}</strong>`, {
+      .open(`<strong>${payload.error.message}</strong>`, {
         label: 'Ошибка!',
         appearance: 'negative',
         autoClose: 3000,
@@ -184,5 +184,20 @@ export class GameState {
     { city }: GameAction.SetCityName
   ) {
     ctx.patchState({ city });
+  }
+
+  @Action(GameAction.AddScore)
+  AddScore(ctx: StateContext<GameStateModel>, { score }: GameAction.AddScore) {
+    const state = ctx.getState();
+    ctx.patchState({ score: state.score + score });
+  }
+
+  @Action(GameAction.ResetGame)
+  ResetGame(ctx: StateContext<GameStateModel>) {
+    const storedCityList: ICityDBModel[] = storedCity;
+    const usedCityList: ICityDBModel[] = [];
+    const score: number = 0;
+    const step: Step = 'user';
+    ctx.patchState({ storedCityList, usedCityList, score, step });
   }
 }
