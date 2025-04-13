@@ -6,12 +6,15 @@
       ></app-map-game>
       <ng-container *tuiLet="_breakpoint$ | async as breakpoint">
         <ng-container *ngIf="breakpoint !== 'mobile'">
-          <div class="col-12 col-md-4">
-            <div>Колонка</div>
-            <div>Колонка</div>
-            <div>Колонка</div>
-            <div>Колонка</div>
-            <div>Колонка</div>
+          <div class="col-12 col-md-4 p-3">
+            <p class="h3">Использованные города</p>
+
+            <ng-container *ngFor="let city of cityListSig(); last as isLast">
+              <span
+                >{{ city.name
+                }}<span *ngIf="usedCityList.length > 1 && !isLast">, </span>
+              </span>
+            </ng-container>
           </div>
         </ng-container>
       </ng-container>

@@ -8,7 +8,7 @@
   ></div>
 </div> -->
 
-<form class="h-100" [formGroup]="form" (submit)="findCity()">
+<form class="h-100" [formGroup]="form" (submit)="sendData$.next(true)">
   <div
     id="map"
     class="h-100"
@@ -88,7 +88,7 @@
             <!-- [readOnly]="(step$ | async) === 'opponent'" -->
             <!-- <tui-loader size="s" /> -->
 
-            <tui-icon icon="@tui.search" (click)="findCity()" />
+            <tui-icon icon="@tui.search" (click)="sendData$.next(true)" />
           </tui-textfield>
         </div>
       </ng-container>

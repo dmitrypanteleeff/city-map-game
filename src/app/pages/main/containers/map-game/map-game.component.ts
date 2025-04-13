@@ -126,6 +126,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly setCityName$$ = new Subject<string>();
   readonly changeMove$$ = new Subject<boolean>();
   readonly repeatSearchCity$$ = new Subject<string>();
+  readonly sendData$ = new Subject<boolean>();
 
   readonly usedCityList$: Observable<ICityDBModel[]> = this._store.select(
     GameState.usedCityList$
@@ -182,10 +183,16 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     // 'Vehicle': this.vehicleMarker
   };
 
-  private readonly dialog = tuiDialog(MapDialogComponent, {
+  private readonly dialogPage = tuiDialog(MapDialogComponent, {
     dismissible: false,
     size: 'fullscreen',
     closeable: false,
+  });
+
+  private readonly dialogWindow = tuiDialog(MapDialogComponent, {
+    dismissible: true,
+    size: 'l',
+    closeable: true,
   });
 
   ngOnInit(): void {
@@ -242,6 +249,9 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     //this._store.dispatch(new GameAction.Error);
   }
   private initSubscriptions(): void {
+    this.sendData$
+      .pipe(filter(Boolean), debounceTime(300), takeUntil(this._destroy$))
+      .subscribe(() => this.findCity());
     //MapGameFormsService;
     this.form.valueChanges
       .pipe(
@@ -366,22 +376,22 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     this._actions
       .pipe(
         ofActionSuccessful(GameAction.GetCityListSuccess),
-        tap((val) => console.log(111111, 'Проверить список городов', val)),
+        //tap((val) => console.log(111111, 'Проверить список городов', val)),
         withLatestFrom(this.step$),
         map(([, step]) => step),
         //switchMap(() => this.step$),
-        tap((val) => console.log(111111, 'Проверить шаг', val)),
+        //tap((val) => console.log(111111, 'Проверить шаг', val)),
         filter((step) => step === 'opponent'),
         //distinctUntilChanged(),
         //take(1),
-        tap((val) => console.log(111111, 'GetCityListSuccess', val)),
+        //tap((val) => console.log(111111, 'GetCityListSuccess', val)),
         withLatestFrom(this.storedCityList$),
         map(([, storedCityList]) => storedCityList),
         //switchMap(() => this.storedCityList$),
         takeUntil(this._destroy$)
       )
       .subscribe((storedCityList) => {
-        console.log(1111111, 'storedCityList', storedCityList);
+        //console.log(1111111, 'storedCityList', storedCityList);
         const cityList = storedCityList as ICityDBModel[];
 
         const index = cityList.findIndex(
@@ -389,7 +399,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         );
 
         if (index !== -1) {
-          console.log('index', index);
+          //console.log('index', index);
           this.city$$.next(cityList[index]);
         } else {
           this.repeatSearchCity$$.next(getCityLastLetter(this.city));
@@ -414,20 +424,16 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   findCity(): void {
-    /* TODO
-      Добавить здесь проверку на корректно введённую букву. Либо в другом месте
-    */
-    // if (isNullOrEmptyString(this.city)) {
-    //   console.log('1 Введите город на букву', getCityLastLetter(this.city));
-    //   return;
-    // }
     if (
-      !isNullOrEmptyString(this.city) &&
-      this.cityFormCtrl.value.trim()[0].toLowerCase() !==
-        getCityLastLetter(this.city)
+      (isNullOrEmptyString(this.cityFormCtrl.value) ||
+        (!isNullOrEmptyString(this.city) &&
+          this.cityFormCtrl.value.trim()?.[0].toLowerCase() !==
+            getCityLastLetter(this.city))) &&
+      this.step === 'user'
     ) {
-      console.log(this.cityFormCtrl.value.trim()[0]);
-      console.log('2 Введите город на букву', getCityLastLetter(this.city));
+      this.showDialogWindow(
+        `Введите город на букву ${getCityLastLetter(this.city).toUpperCase()}`
+      );
       return;
     }
     this.city$$.next(this.cityFormCtrl.value);
@@ -450,25 +456,21 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
       this.cityIsExist(target);
     } else {
-      console.log('Не найден');
+      this.showDialogWindow('Не могу найти такого города. Попробуйте другой');
     }
   }
 
   private cityIsExist(city: any): void {
     const town = prepeareCityForSearching(city);
-    console.log('town  1', town);
-
-    /* TODO
-    Проверка - совпадает ли первая буква города с буквой на которую нужно было вводить город
-    
-    */
 
     const townIsUsed = this.usedCityList.find(
       (item) => item.name === town?.name
     );
     if (!!townIsUsed) {
       if (this.step === 'user') {
-        console.log('Такой город уже был. Введите другой');
+        this.showDialogWindow(
+          `${town?.name} - данный город уже был использован. Он есть в списке ранее использованных городов. Введите другой`
+        );
         return;
       }
       console.log('Логика от компа');
@@ -477,7 +479,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
     !!town
       ? this.setCity(town)
-      : console.log('Подсветить пользователю, что нет такого города');
+      : this.showDialogWindow('Не могу найти такого города. Попробуйте другой');
   }
 
   private setCity(city: ICityModel): void {
@@ -502,11 +504,12 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   showDialogEndTimer(): void {
-    this.dialog('Время вышло')
+    this.dialogPage({ type: 'fullscreen', header: 'Время вышло' })
       //.pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
           console.info(`Dialog emitted data = ${data}`);
+          //this.dialogWindow.complete();
         },
         complete: () => {
           console.info('Dialog closed');
@@ -515,9 +518,16 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       });
   }
 
-  // private showDialog(content: TemplateRef<TuiDialogContext>): void {
-  //   this._dialogs
-  //     .open(content, { dismissible: true, size: 'fullscreen' })
-  //     .subscribe();
-  // }
+  showDialogWindow(content: string): void {
+    this.dialogWindow({ type: 'window', header: 'Ошибка', content })
+      //.pipe(takeUntil(this._destroy$))
+      .subscribe({
+        next: (data) => {
+          console.info(`Dialog emitted data = ${data}`);
+        },
+        complete: () => {
+          console.info('Dialog closed');
+        },
+      });
+  }
 }

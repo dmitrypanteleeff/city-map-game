@@ -4,7 +4,7 @@ import {
   inject,
   OnInit,
 } from '@angular/core';
-import { Actions, Store } from '@ngxs/store';
+import { Actions, ofActionSuccessful, Store } from '@ngxs/store';
 import { DestroyService } from '../../../../shared/services/destroy.service';
 import { GameState } from '../../state/game.state';
 import {
@@ -22,7 +22,7 @@ import { TuiButton, tuiDialog, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
 import { GameAction } from '../../state/game.actions';
 import { RecordsApiService } from '../../services/records-api.services';
-import { RecordModel } from '../../models';
+import { IDialogModel, RecordModel, TypeDialog } from '../../models';
 import { TuiTable } from '@taiga-ui/addon-table';
 import { ScoreFormComponent } from '../score-form/score-form.component';
 import { TuiLet } from '@taiga-ui/cdk';
@@ -61,7 +61,8 @@ export class MapDialogComponent implements OnInit {
 
   records$!: Observable<RecordModel[]>;
 
-  public readonly context = injectContext<TuiDialogContext<string, string>>();
+  public readonly context =
+    injectContext<TuiDialogContext<IDialogModel, IDialogModel>>();
 
   private readonly dialog = tuiDialog(ScoreFormComponent, {
     dismissible: false,
@@ -72,22 +73,42 @@ export class MapDialogComponent implements OnInit {
   readonly showSendRecordBtn = showSendRecordBtn;
 
   resetGame(): void {
-    this.context.completeWith('');
+    this.context.completeWith({ type: 'fullscreen', header: '' });
     this._store.dispatch(new GameAction.ResetGame());
   }
 
-  protected get data(): string {
-    return this.context.data;
+  protected get header(): string {
+    return this.context.data.header;
+  }
+
+  protected get content(): string | undefined {
+    return this.context.data.content;
+  }
+
+  protected get typeDialog(): TypeDialog {
+    return this.context.data.type;
   }
 
   ngOnInit(): void {
-    this.records$ = this._apiFirebase.getRecords().pipe(
-      //take(1),
-      tap((val) => console.log(111111, 'val', val)),
-      map((arr) =>
-        arr.sort((a, b) => b.score - a.score).filter((_, index) => index < 10)
-      )
-    );
+    if (this.typeDialog === 'fullscreen') {
+      this.records$ = this._apiFirebase.getRecords().pipe(
+        //take(1),
+        tap((val) => console.log(111111, 'val', val)),
+        map((arr) =>
+          arr.sort((a, b) => b.score - a.score).filter((_, index) => index < 10)
+        )
+      );
+    }
+
+    this.initSubscription();
+  }
+
+  private initSubscription(): void {
+    this._actions
+      .pipe(ofActionSuccessful(GameAction.ResetGame), takeUntil(this._destroy$))
+      .subscribe(() =>
+        this.context.completeWith({ type: 'fullscreen', header: '' })
+      );
   }
 
   showDialog(): void {
@@ -95,13 +116,11 @@ export class MapDialogComponent implements OnInit {
       //.pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
-          console.info(`Dialog emitted data = ${data}`);
-          // Условия data
+          //console.info(`Dialog emitted data = ${data}`);
           this.showBtn$$.next(false);
         },
         complete: () => {
-          console.info('Dialog closed');
-          //this._router.navigate(['/start']);
+          //console.info('Dialog closed');
         },
       });
   }
