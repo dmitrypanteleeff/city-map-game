@@ -1,0 +1,33 @@
+<form [formGroup]="form" (submit)="sendData$.next(true)">
+  <p>Ваша количество очков {{ data }}</p>
+
+  <ng-container
+    *tuiLet="{
+        breakpoint: _breakpoint$ | async,
+    } as ctx"
+  >
+    <tui-textfield
+      class="border"
+      [tuiTextfieldSize]="ctx.breakpoint | func : resizeElements"
+    >
+      <input
+        placeholder="Введите имя"
+        tuiTextfield
+        formControlName="user"
+        [invalid]="userFormCtrl.invalid"
+      />
+    </tui-textfield>
+    <tui-error formControlName="user" [error]="[] | tuiFieldError | async" />
+
+    <button
+      class="mt-3"
+      size="m"
+      tuiButton
+      type="submit"
+      [disabled]="userFormCtrl.invalid"
+      (click)="sendData$.next(true)"
+    >
+      Отправить
+    </button>
+  </ng-container>
+</form>

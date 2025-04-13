@@ -1,21 +1,69 @@
-<div class="d-flex h-100">
-  <div class="container">
-    <div class="row rounded-5 border">
-      <div
-        class="d-flex flex-column align-items-center justify-content-center rounded-5 border"
-      >
-        <h1>{{ data }}</h1>
-        <p>Количество очков {{ score$ | async }}</p>
-        <button
-          tuiButton
-          class="mb-1"
-          type="button"
-          [routerLink]="['/start']"
-          (click)="resetGame()"
+<ng-container
+  *tuiLet="{
+    score: score$ | async
+  } as ctx"
+>
+  <div class="d-flex">
+    <div class="container">
+      <div class="row rounded-5 border">
+        <div
+          class="d-flex flex-column align-items-center justify-content-center rounded-5 border p-4"
         >
-          В главное меню
-        </button>
+          <h1>{{ data }}</h1>
+          <p>Количество очков {{ ctx.score }}</p>
+          <button
+            tuiButton
+            class="mb-1"
+            type="button"
+            [routerLink]="['/start']"
+            (click)="resetGame()"
+          >
+            В главное меню
+          </button>
+
+          <ng-container
+            *ngIf="[ctx.score, showBtn$$ | async] | func : showSendRecordBtn"
+          >
+            <button
+              class="mt-4"
+              size="m"
+              tuiButton
+              appearance="accent"
+              type="button"
+              (click)="showDialog()"
+            >
+              Записать свой рекорд
+            </button>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="row rounded-5 border mt-4 mt-md-5">
+        <div
+          class="d-flex flex-column align-items-center justify-content-center rounded-5 border p-4"
+        >
+          <h2 class="text-center mb-4">Таблица рекордов (Собраны лучшие 10)</h2>
+
+          <table tuiTable class="table">
+            <thead>
+              <tr tuiThGroup>
+                <th tuiTh>Место</th>
+                <th tuiTh>Имя</th>
+                <th tuiTh>Очки</th>
+              </tr>
+              <ng-container
+                *ngFor="let item of records$ | async; let id = index"
+              >
+                <tr tuiThGroup>
+                  <td tuiTd>{{ id + 1 }}</td>
+                  <td tuiTd>{{ item.name }}</td>
+                  <td tuiTd>{{ item.score }}</td>
+                </tr>
+              </ng-container>
+            </thead>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
+</ng-container>

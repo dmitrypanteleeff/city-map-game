@@ -183,7 +183,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   };
 
   private readonly dialog = tuiDialog(MapDialogComponent, {
-    dismissible: true,
+    dismissible: false,
     size: 'fullscreen',
     closeable: false,
   });

@@ -43,7 +43,7 @@ export interface GameStateModel {
       currentLanguage: 'rus',
       languages: ['eng', 'rus'],
     },
-    score: 0,
+    score: 10,
     step: 'user',
     city: '',
   },
