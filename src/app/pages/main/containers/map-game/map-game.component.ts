@@ -5,6 +5,7 @@ import {
   ElementRef,
   inject,
   OnInit,
+  signal,
   TemplateRef,
   ViewChild,
 } from '@angular/core';
@@ -24,13 +25,20 @@ import {
 } from 'leaflet';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TuiChip, TuiPulse, TuiTooltip } from '@taiga-ui/kit';
+import {
+  TUI_CONFIRM,
+  TuiChip,
+  TuiDrawer,
+  TuiPulse,
+  TuiTooltip,
+} from '@taiga-ui/kit';
 import {
   tuiDialog,
   TuiDialogContext,
   TuiDialogService,
   TuiIcon,
   TuiLoader,
+  TuiPopup,
   TuiTextfield,
 } from '@taiga-ui/core';
 
@@ -61,6 +69,7 @@ import { TuiBreakpointService } from '@taiga-ui/core';
 import {
   addMarker,
   checkTypeCityIsCityDBModel,
+  deleteCharacters,
   getCityLastLetter,
   getRandomSymbol,
   prepeareCityForSearching,
@@ -87,6 +96,7 @@ import {
 import { MapTimerComponent } from '../../components/map-timer/map-timer.component';
 import { MapDialogComponent } from '../../components/map-dialog/map-dialog.component';
 import { Router } from '@angular/router';
+import { UsedCitiesListComponent } from '../../components/used-cities-list/used-cities-list.component';
 
 @Component({
   selector: 'app-map-game',
@@ -100,11 +110,14 @@ import { Router } from '@angular/router';
     TuiLoader,
     TuiChip,
     TuiTextfield,
+    TuiPopup,
+    TuiDrawer,
     TuiTooltip,
     FormsModule,
     TuiLet,
     AsyncPipe,
     FunctionPipe,
+    UsedCitiesListComponent,
   ],
   templateUrl: './map-game.component.html',
   styleUrl: './map-game.component.less',
@@ -117,6 +130,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   private readonly _store = inject(Store);
   private readonly _actions = inject(Actions);
   private readonly _router = inject(Router);
+  private readonly _dialogs = inject(TuiDialogService);
 
   readonly _breakpoint$ = inject(TuiBreakpointService);
 
@@ -138,6 +152,8 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly step$: Observable<Step> = this._store.select(GameState.step$);
   readonly cityName$: Observable<string> = this._store.select(GameState.city$);
   readonly score$: Observable<number> = this._store.select(GameState.score$);
+
+  readonly openDrawer = signal(false);
 
   get storedCityList(): ICityDBModel[] {
     return this._store.selectSnapshot(GameState.storedCityList$);
@@ -165,6 +181,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly resizeElements = resizeElements;
   readonly isNullOrEmptyString = isNullOrEmptyString;
   readonly getCityLastLetter = getCityLastLetter;
+  readonly deleteCharacters = deleteCharacters;
 
   private map!: L.Map;
   public mapOptions!: L.MapOptions;
@@ -353,7 +370,9 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         takeUntil(this._destroy$)
       )
       .subscribe(() =>
-        this.lastCityLetter$$.next(getCityLastLetter(this.city))
+        this.lastCityLetter$$.next(
+          getCityLastLetter(deleteCharacters(this.city)).toLowerCase()
+        )
       );
 
     this._actions
@@ -505,7 +524,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
   showDialogEndTimer(): void {
     this.dialogPage({ type: 'fullscreen', header: 'Время вышло' })
-      //.pipe(takeUntil(this._destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
           console.info(`Dialog emitted data = ${data}`);
@@ -520,7 +539,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
   showDialogWindow(content: string): void {
     this.dialogWindow({ type: 'window', header: 'Ошибка', content })
-      //.pipe(takeUntil(this._destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
           console.info(`Dialog emitted data = ${data}`);

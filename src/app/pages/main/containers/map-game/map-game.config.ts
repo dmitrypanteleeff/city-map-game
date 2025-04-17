@@ -21,7 +21,7 @@ export const OFFERS_HYBRID_MAP = L.tileLayer(
   }
 );
 
-export const ruAlphabet: string[] = ['н'];
+export const ruAlphabet: string[] = ['а'];
 
 // export const ruAlphabet: string[] = [
 //   'а',

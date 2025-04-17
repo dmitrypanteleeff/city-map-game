@@ -7,59 +7,77 @@
     [leafletLayersControl]="layersControl"
   ></div>
 </div> -->
-
-<form class="h-100" [formGroup]="form" (submit)="sendData$.next(true)">
-  <div
-    id="map"
-    class="h-100"
-    leaflet
-    [leafletOptions]="mapOptions"
-    (leafletMapReady)="onMapReady($event)"
-  >
+<ng-container
+  *tuiLet="{
+    breakpoint: _breakpoint$ | async,
+    step: step$ | async
+  } as ctx"
+>
+  <form class="h-100" [formGroup]="form" (submit)="sendData$.next(true)">
     <div
-      class="container position-relative d-flex flex-column justify-content-end map-game__content"
+      id="map"
+      class="h-100"
+      leaflet
+      [leafletOptions]="mapOptions"
+      (leafletMapReady)="onMapReady($event)"
     >
-      <ng-container
-        *tuiLet="{
-          breakpoint: _breakpoint$ | async,
-          step: step$ | async
-        } as ctx"
+      <div
+        class="container position-relative d-flex flex-column justify-content-end map-game__content"
       >
         <div class="mt-4">
-          <div class="d-flex justify-content-between align-items-end mb-2">
-            <div class="d-flex flex-column">
-              <tui-chip class="map-game__score mb-1" size="xs"
-                ><span>Очки {{ score$ | async }}</span></tui-chip
-              >
+          <div class="map-game__info mb-2">
+            <!-- <div class="d-flex flex-column"> -->
+            <tui-chip class="mb-1 map-game__chip" size="xs" appearance="outline"
+              ><span>Очки {{ score$ | async }}</span></tui-chip
+            >
 
-              <tui-chip class="small" appearance="accent" size="xs">
-                <ng-container
-                  *ngIf="ctx.step === 'opponent'; else userChipTempl"
-                >
-                  <span>Соперник вводит город на букву </span>
-                </ng-container>
-                <ng-template #userChipTempl
-                  ><span>Введите город на букву</span></ng-template
-                >
-                <strong
-                  ><em class="text-uppercase">{{
-                    city$ | async | func : getCityLastLetter
-                  }}</em></strong
-                ></tui-chip
+            <tui-chip class="map-game__chip" appearance="outline" size="xs">
+              <ng-container *ngIf="ctx.step === 'opponent'; else userChipTempl">
+                <span>Ход соперника на букву </span>
+              </ng-container>
+              <ng-template #userChipTempl
+                ><span>Введите город на букву</span></ng-template
               >
-            </div>
-            <div class="d-flex flex-column align-items-end">
-              <!-- <app-map-timer /> -->
-              <!-- <tui-chip class="map-game__score mb-1" size="xs"
+              <strong
+                ><em class="text-uppercase">{{
+                  city$
+                    | async
+                    | func : deleteCharacters
+                    | func : getCityLastLetter
+                }}</em></strong
+              ></tui-chip
+            >
+
+            <tui-chip class="map-game__chip" appearance="outline" size="xs"
+              ><span>Таймер</span
+              ><app-map-timer (onSuccess)="showDialogEndTimer()" />
+              <!-- <tui-pulse class="ms-2 me-2" [playing]="true"
+              /> -->
+            </tui-chip>
+
+            <ng-container *ngIf="ctx.breakpoint === 'mobile'">
+              <button
+                class="map-game__timer small mb-1"
+                size="xs"
+                tuiChip
+                type="button"
+                (click)="openDrawer.set(true)"
+              >
+                <span
+                  >Использованные города
+                  <tui-icon icon="@tui.info" [style.font-size.rem]="1" />
+                </span>
+              </button>
+            </ng-container>
+
+            <!-- </div>
+            <div class="d-flex flex-column align-items-end"> -->
+            <!-- <app-map-timer /> -->
+            <!-- <tui-chip class="map-game__score mb-1" size="xs"
                 ><span>Очки</span></tui-chip
               > -->
-              <tui-chip class="map-game__timer" size="xs"
-                ><span>Таймер</span
-                ><app-map-timer (onSuccess)="showDialogEndTimer()" />
-                <!-- <tui-pulse class="ms-2 me-2" [playing]="true"
-              /> -->
-              </tui-chip>
-            </div>
+
+            <!-- </div> -->
           </div>
           <tui-textfield
             class="border"
@@ -91,7 +109,22 @@
             <tui-icon icon="@tui.search" (click)="sendData$.next(true)" />
           </tui-textfield>
         </div>
-      </ng-container>
+      </div>
     </div>
-  </div>
-</form>
+  </form>
+
+  <ng-container *ngIf="ctx.breakpoint === 'mobile'">
+    <tui-drawer
+      class="drawer"
+      *tuiPopup="openDrawer()"
+      direction="left"
+      [overlay]="true"
+      (click.self)="openDrawer.set(false)"
+    >
+      <app-used-cities-list
+        class="col-12"
+        (onClose)="openDrawer.set(false)"
+      ></app-used-cities-list>
+    </tui-drawer>
+  </ng-container>
+</ng-container>

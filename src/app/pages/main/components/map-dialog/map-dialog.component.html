@@ -47,13 +47,15 @@
             </div>
           </div>
 
-          <div class="row rounded-5 border mt-4 mt-md-5">
+          <div
+            class="row rounded-5 border mt-4 mt-md-5"
+            [tuiSkeleton]="loading"
+          >
             <div
               class="d-flex flex-column align-items-center justify-content-center rounded-5 border p-4"
             >
-              <h2 class="text-center mb-4">
-                Таблица рекордов (Собраны лучшие 10)
-              </h2>
+              <h2 class="text-center mb-2">Таблица рекордов</h2>
+              <div class="h5 text-center mb-4">(Собраны лучшие 10)</div>
 
               <table tuiTable class="table">
                 <thead>

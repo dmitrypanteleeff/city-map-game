@@ -52,7 +52,7 @@ export class MapTimerComponent implements OnInit {
   @Output() readonly onSuccess = new EventEmitter<boolean>();
 
   public counter = signal<number>(50);
-  number = 500;
+  number = 5000;
 
   public doubleCounter = computed<number>(() => {
     return this.counter() * 2;

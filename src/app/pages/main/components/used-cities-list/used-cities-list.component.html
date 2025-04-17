@@ -1,0 +1,37 @@
+<ng-container
+  *tuiLet="{
+    breakpoint: _breakpoint$ | async,
+  } as ctx"
+>
+  <header class="header sticky-top">
+    <h2 class="d-flex justify-content-between pt-2 pb-2" tuiHeader>
+      <div class="h4">Использованные города</div>
+
+      <ng-container *ngIf="ctx.breakpoint === 'mobile'">
+        <div tuiAccessories>
+          <button
+            class="ms-3"
+            appearance="secondary"
+            size="s"
+            tuiButton
+            type="button"
+            (click)="onClose.emit()"
+          >
+            <tui-icon icon="@tui.x" [style.height.rem]="1" />
+          </button>
+        </div>
+      </ng-container>
+    </h2>
+  </header>
+
+  <tui-scrollbar class="box mb-6 h-75">
+    <div class="content">
+      <ng-container *ngFor="let city of cityListSig(); last as isLast">
+        <span
+          >{{ city.name
+          }}<span *ngIf="usedCityList.length > 1 && !isLast">, </span>
+        </span>
+      </ng-container>
+    </div>
+  </tui-scrollbar>
+</ng-container>

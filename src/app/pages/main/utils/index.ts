@@ -8,3 +8,4 @@ export { resizeElements } from './resize-elements.function';
 export { getRandomSymbol } from './get-random-symbol.function';
 export { showTimerOrInfinity } from './show-timer-or-infinity.function';
 export { showSendRecordBtn } from './show-send-record-btn.function';
+export { deleteCharacters } from './delete-characters.function';

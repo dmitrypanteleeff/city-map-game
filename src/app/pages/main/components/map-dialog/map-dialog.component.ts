@@ -9,6 +9,8 @@ import { DestroyService } from '../../../../shared/services/destroy.service';
 import { GameState } from '../../state/game.state';
 import {
   BehaviorSubject,
+  delay,
+  filter,
   map,
   Observable,
   Subject,
@@ -16,6 +18,7 @@ import {
   takeUntil,
   tap,
 } from 'rxjs';
+import { TuiSkeleton } from '@taiga-ui/kit';
 import { AsyncPipe, CommonModule, JsonPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TuiButton, tuiDialog, TuiDialogContext } from '@taiga-ui/core';
@@ -28,6 +31,7 @@ import { ScoreFormComponent } from '../score-form/score-form.component';
 import { TuiLet } from '@taiga-ui/cdk';
 import { FunctionPipe } from '../../../../shared/pipes';
 import { showSendRecordBtn } from '../../utils';
+import { isNotNullOrEmptyArray } from '../../../../shared/utils';
 
 @Component({
   selector: 'app-map-dialog',
@@ -40,6 +44,7 @@ import { showSendRecordBtn } from '../../utils';
     TuiTable,
     TuiLet,
     FunctionPipe,
+    TuiSkeleton,
   ],
   templateUrl: './map-dialog.component.html',
   styleUrl: './map-dialog.component.less',
@@ -54,12 +59,12 @@ export class MapDialogComponent implements OnInit {
 
   readonly score$: Observable<number> = this._store.select(GameState.score$);
   readonly showBtn$$ = new BehaviorSubject<boolean>(true);
+  records$!: Observable<RecordModel[]>;
+  loading: boolean = true;
 
   get score(): number {
     return this._store.selectSnapshot(GameState.score$);
   }
-
-  records$!: Observable<RecordModel[]>;
 
   public readonly context =
     injectContext<TuiDialogContext<IDialogModel, IDialogModel>>();
@@ -94,9 +99,11 @@ export class MapDialogComponent implements OnInit {
       this.records$ = this._apiFirebase.getRecords().pipe(
         //take(1),
         tap((val) => console.log(111111, 'val', val)),
+        delay(5000),
         map((arr) =>
           arr.sort((a, b) => b.score - a.score).filter((_, index) => index < 10)
-        )
+        ),
+        tap(() => (this.loading = false))
       );
     }
 
@@ -113,7 +120,7 @@ export class MapDialogComponent implements OnInit {
 
   showDialog(): void {
     this.dialog(this.score)
-      //.pipe(takeUntil(this._destroy$))
+      .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
           //console.info(`Dialog emitted data = ${data}`);
