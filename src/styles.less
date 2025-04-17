@@ -1,6 +1,7 @@
 /* You can add global styles to this file, and also import other style files */
 @import "node_modules/@taiga-ui/core/styles/taiga-ui-theme.less";
 @import "node_modules/@taiga-ui/core/styles/taiga-ui-fonts.less";
+@import "@taiga-ui/core/styles/taiga-ui-local.less";
 
 #map .leaflet-attribution-flag {
   display: none !important;
@@ -14,112 +15,64 @@
 input[tuiAppearance][data-appearance="textfield"]:read-only:not([data-mode]) {
   background: rgba(255, 255, 255, 0.7) !important;
 }
-// * {
-//   padding: 0px;
-//   margin: 0px;
-//   border: none;
-// }
 
-// *,
-// *::before,
-// *::after {
-//   box-sizing: border-box;
-// }
+.grid-wrap {
+  display: grid;
 
-// /* Links */
+  &.banner-wrapper__content {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
 
-// a,
-// a:link,
-// a:visited {
-//   text-decoration: none;
-// }
+    @media @tui-tablet-min {
+      grid-template-columns: 1fr 2fr;
+      grid-template-rows: 1fr;
+    }
 
-// a:hover {
-//   text-decoration: none;
-// }
+    @media @tui-desktop-min {
+      grid-template-columns: 1fr 3fr;
+      grid-template-rows: 1fr;
+    }
+  }
 
-// /* Common */
+  &.banner-wrapper__two {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 1rem;
 
-// aside,
-// nav,
-// footer,
-// header,
-// section,
-// main {
-//   display: block;
-// }
+    @media @tui-desktop-min {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
+      gap: 1.5rem;
+    }
+  }
 
-// h1,
-// h2,
-// h3,
-// h4,
-// h5,
-// h6,
-// p {
-//   font-size: inherit;
-//   font-weight: inherit;
-// }
+  &.banner-wrapper__three {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 1rem;
 
-// ul,
-// ul li {
-//   list-style: none;
-// }
+    @media @tui-tablet-min {
+      grid-template-columns: 1fr 1fr;
+    }
 
-// img {
-//   vertical-align: top;
-// }
+    @media @tui-desktop-min {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
 
-// img,
-// svg {
-//   max-width: 100%;
-//   height: auto;
-// }
+  &.banner-wrapper__four {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0.5rem;
 
-// address {
-//   font-style: normal;
-// }
+    @media @tui-tablet-min {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
 
-// /* Form */
-
-// input,
-// textarea,
-// button,
-// select {
-//   font-family: inherit;
-//   font-size: inherit;
-//   color: inherit;
-//   background-color: transparent;
-// }
-
-// input::-ms-clear {
-//   display: none;
-// }
-
-// button,
-// input[type="submit"] {
-//   display: inline-block;
-//   box-shadow: none;
-//   background-color: transparent;
-//   background: none;
-//   cursor: pointer;
-// }
-
-// input:focus,
-// input:active,
-// button:focus,
-// button:active {
-//   outline: none;
-// }
-
-// button::-moz-focus-inner {
-//   padding: 0;
-//   border: 0;
-// }
-
-// label {
-//   cursor: pointer;
-// }
-
-// legend {
-//   display: block;
-// }
+    @media @tui-desktop-min {
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 1.5rem;
+    }
+  }
+}
