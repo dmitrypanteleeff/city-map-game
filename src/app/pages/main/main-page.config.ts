@@ -1,5 +1,15 @@
 import { ICityDBModel } from './models';
 
+export const GAME_ADD_SCORE: number = 50;
+
+export const GAME_START_TIME: number = 7000;
+
+export const GAME_SCORE_FOR_USER: number = 100;
+
+export const GAME_SCORE_FOR_COMPUTER: number = 50;
+
+export const GAME_USER_WIN: number = 1500;
+
 export const storedCity: ICityDBModel[] = [
   {
     city: 'Альмагро',

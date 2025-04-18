@@ -97,6 +97,7 @@ import { MapTimerComponent } from '../../components/map-timer/map-timer.componen
 import { MapDialogComponent } from '../../components/map-dialog/map-dialog.component';
 import { Router } from '@angular/router';
 import { UsedCitiesListComponent } from '../../components/used-cities-list/used-cities-list.component';
+import * as config from '../../main-page.config';
 
 @Component({
   selector: 'app-map-game',
@@ -129,8 +130,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   private readonly _form = inject(MapGameFormsService);
   private readonly _store = inject(Store);
   private readonly _actions = inject(Actions);
-  private readonly _router = inject(Router);
-  private readonly _dialogs = inject(TuiDialogService);
 
   readonly _breakpoint$ = inject(TuiBreakpointService);
 
@@ -154,6 +153,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly score$: Observable<number> = this._store.select(GameState.score$);
 
   readonly openDrawer = signal(false);
+  readonly gameOver = signal(false);
 
   get storedCityList(): ICityDBModel[] {
     return this._store.selectSnapshot(GameState.storedCityList$);
@@ -381,7 +381,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         map((obj) => obj.city.name),
         distinctUntilChanged(),
         tap(() => {
-          const score = this.step === 'user' ? 100 : 50;
+          const score =
+            this.step === 'user'
+              ? config.GAME_SCORE_FOR_USER
+              : config.GAME_SCORE_FOR_COMPUTER;
           this._store.dispatch(new GameAction.AddScore(score));
         }),
         //distinctUntilChanged((prev, curr) => prev.name === curr.name),
@@ -522,8 +525,33 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     event.stopImmediatePropagation();
   }
 
+  setGameOver(): void {
+    this.gameOver.set(true);
+    const header = 'Игра окончена';
+
+    this.showDialogEndGame(header);
+  }
+
   showDialogEndTimer(): void {
-    this.dialogPage({ type: 'fullscreen', header: 'Время вышло' })
+    if (this.step === 'opponent') {
+      this._store.dispatch(new GameAction.AddScore(config.GAME_USER_WIN));
+    }
+
+    if (this.gameOver()) {
+      console.log(1111111, ' gameOver', this.gameOver());
+      return;
+    }
+
+    const header =
+      this.step === 'opponent'
+        ? 'Время вышло! Вы обыграли соперника'
+        : 'Время вышло';
+
+    this.showDialogEndGame(header);
+  }
+
+  showDialogEndGame(header: string): void {
+    this.dialogPage({ type: 'fullscreen', header })
       .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {

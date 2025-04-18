@@ -43,7 +43,7 @@ export interface GameStateModel {
       currentLanguage: 'rus',
       languages: ['eng', 'rus'],
     },
-    score: 10,
+    score: 0,
     step: 'user',
     city: '',
   },
@@ -160,7 +160,7 @@ export class GameState {
   @Action(GameAction.Error)
   Error(ctx: StateContext<GameStateModel>, { payload }: GameAction.Error) {
     this._alerts
-      .open(`<strong>${payload.error.message}</strong>`, {
+      .open(`<strong>${payload?.error?.message}</strong>`, {
         label: 'Ошибка!',
         appearance: 'negative',
         autoClose: 3000,

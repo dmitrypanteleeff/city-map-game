@@ -1,6 +1,7 @@
 .map-game {
   &__content {
     z-index: 1000;
+    pointer-events: none;
   }
 
   &__chip {
@@ -42,6 +43,10 @@
   }
 }
 
+button,
+tui-chip {
+  pointer-events: all;
+}
 tui-drawer {
   z-index: 1000;
 }

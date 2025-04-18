@@ -35,6 +35,7 @@ import {
   TuiDialogSize,
 } from '@taiga-ui/core';
 import type { PolymorpheusContent } from '@taiga-ui/polymorpheus';
+import * as config from '../../main-page.config';
 
 @Component({
   selector: 'app-map-timer',
@@ -52,7 +53,7 @@ export class MapTimerComponent implements OnInit {
   @Output() readonly onSuccess = new EventEmitter<boolean>();
 
   public counter = signal<number>(50);
-  number = 5000;
+  number = config.GAME_START_TIME;
 
   public doubleCounter = computed<number>(() => {
     return this.counter() * 2;
@@ -80,6 +81,6 @@ export class MapTimerComponent implements OnInit {
 
     this._actions
       .pipe(ofActionCompleted(GameAction.ToggleStep), takeUntil(this._destroy$))
-      .subscribe(() => (this.number += 50));
+      .subscribe(() => (this.number += config.GAME_ADD_SCORE));
   }
 }
