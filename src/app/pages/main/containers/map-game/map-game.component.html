@@ -1,15 +1,7 @@
-<!-- <div>
-  <div
-    id="map"
-    leaflet
-    (leafletMapReady)="onMapReady($event)"
-    [leafletOptions]="mapOptions"
-    [leafletLayersControl]="layersControl"
-  ></div>
-</div> -->
 <ng-container
   *tuiLet="{
     breakpoint: _breakpoint$ | async,
+    language: language$ | async,
     step: step$ | async
   } as ctx"
 >
@@ -28,15 +20,29 @@
           <div class="map-game__info mb-2">
             <!-- <div class="d-flex flex-column"> -->
             <tui-chip class="mb-1 map-game__chip" size="xs" appearance="outline"
-              ><span>Очки {{ score$ | async }}</span></tui-chip
+              ><span
+                >{{
+                  [ctx.language, content.MAP_GAME_CONFIG_SCORE]
+                    | func : getContentByLanguage
+                }}
+                {{ score$ | async }}</span
+              ></tui-chip
             >
 
             <tui-chip class="map-game__chip" appearance="outline" size="xs">
               <ng-container *ngIf="ctx.step === 'opponent'; else userChipTempl">
-                <span>Ход соперника на букву </span>
+                <span
+                  >{{
+                    [ctx.language, content.MAP_GAME_CONFIG_OPPONENT_MOVE]
+                      | func : getContentByLanguage
+                  }}
+                </span>
               </ng-container>
               <ng-template #userChipTempl
-                ><span>Введите город на букву</span></ng-template
+                ><span>{{
+                  [ctx.language, content.MAP_GAME_CONFIG_USER_MOVE]
+                    | func : getContentByLanguage
+                }}</span></ng-template
               >
               <strong
                 ><em class="text-uppercase">{{
@@ -49,10 +55,11 @@
             >
 
             <tui-chip class="map-game__chip" appearance="outline" size="xs"
-              ><span>Таймер</span
+              ><span>{{
+                [ctx.language, content.MAP_GAME_CONFIG_TIMER]
+                  | func : getContentByLanguage
+              }}</span
               ><app-map-timer (onSuccess)="showDialogEndTimer()" />
-              <!-- <tui-pulse class="ms-2 me-2" [playing]="true"
-              /> -->
             </tui-chip>
 
             <ng-container *ngIf="ctx.breakpoint === 'mobile'">
@@ -64,7 +71,10 @@
                 (click)="openDrawer.set(true)"
               >
                 <span
-                  >Использованные города
+                  >{{
+                    [ctx.language, content.MAP_GAME_CONFIG_USED_CITY]
+                      | func : getContentByLanguage
+                  }}
                   <tui-icon icon="@tui.info" [style.font-size.rem]="1" />
                 </span>
               </button>
@@ -76,7 +86,10 @@
           >
             <input
               #inputCity
-              placeholder="Введите город"
+              [placeholder]="
+                [ctx.language, content.MAP_GAME_CONFIG_ENTER_CITY]
+                  | func : getContentByLanguage
+              "
               tuiTextfield
               [readOnly]="ctx.step === 'opponent'"
               formControlName="city"
@@ -99,7 +112,10 @@
             (click)="setGameOver()"
           >
             <span
-              >Завершить игру
+              >{{
+                [ctx.language, content.MAP_GAME_CONFIG_END_THE_GAME]
+                  | func : getContentByLanguage
+              }}
               <tui-icon
                 icon="@tui.screen-share-off"
                 [style.font-size.rem]="1"

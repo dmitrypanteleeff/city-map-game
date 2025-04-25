@@ -1,13 +1,39 @@
-<div class="container">
-  <div class="row rounded-5 border">
-    <div
-      class="d-flex flex-column align-items-center justify-content-center vh-100 rounded-5 border"
-    >
-      <button tuiButton class="mb-1" type="button" [routerLink]="['/main']">
-        Начать
-      </button>
+<ng-container
+  *tuiLet="{
+    language: language$ | async,
+  } as ctx"
+>
+  <div class="container">
+    <div class="row rounded-5 border">
+      <div
+        class="d-flex flex-column align-items-center justify-content-center vh-100 rounded-5 border"
+      >
+        <button type="button" class="mb-1" tuiButton [routerLink]="['/main']">
+          {{
+            [ctx.language, content.START_PAGE_CONFIG_START_BTN]
+              | func : getContentByLanguage
+          }}
+        </button>
 
-      <button tuiButton type="button" [routerLink]="['/options']">Опции</button>
+        <button
+          type="button"
+          class="mb-1"
+          tuiButton
+          [routerLink]="['/options']"
+        >
+          {{
+            [ctx.language, content.START_PAGE_CONFIG_RULES_BTN]
+              | func : getContentByLanguage
+          }}
+        </button>
+
+        <button type="button" tuiButton (click)="changeLanguage()">
+          {{
+            [ctx.language, content.START_PAGE_CONFIG_CHANGE_LANGUAGE_BTN]
+              | func : getContentByLanguage
+          }}
+        </button>
+      </div>
     </div>
   </div>
-</div>
+</ng-container>

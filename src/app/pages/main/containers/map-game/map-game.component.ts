@@ -6,42 +6,23 @@ import {
   inject,
   OnInit,
   signal,
-  TemplateRef,
   ViewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
-import * as MapConfig from './map-game.config';
+import * as content from './map-game.config';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import { TuiLet } from '@taiga-ui/cdk';
-import {
-  Map,
-  Polygon,
-  Circle,
-  Marker,
-  control,
-  tileLayer,
-  MapOptions,
-} from 'leaflet';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  TUI_CONFIRM,
-  TuiChip,
-  TuiDrawer,
-  TuiPulse,
-  TuiTooltip,
-} from '@taiga-ui/kit';
+import { TuiChip, TuiDrawer, TuiPulse, TuiTooltip } from '@taiga-ui/kit';
 import {
   tuiDialog,
-  TuiDialogContext,
-  TuiDialogService,
   TuiIcon,
   TuiLoader,
   TuiPopup,
   TuiTextfield,
 } from '@taiga-ui/core';
-
 import { DestroyService } from '../../../../shared/services/destroy.service';
 import {
   catchError,
@@ -49,13 +30,11 @@ import {
   delay,
   distinctUntilChanged,
   filter,
-  from,
   iif,
   interval,
   map,
   Observable,
   of,
-  reduce,
   scan,
   Subject,
   switchMap,
@@ -71,9 +50,9 @@ import {
   checkTypeCityIsCityDBModel,
   deleteCharacters,
   getCityLastLetter,
+  getContentByLanguage,
   getRandomSymbol,
   prepeareCityForSearching,
-  removeUnnecessaryCharacters,
   resizeElements,
 } from '../../utils';
 import { ICityDBModel, ICityModel, Step } from '../../models';
@@ -83,21 +62,16 @@ import {
   Actions,
   ofActionCompleted,
   ofActionSuccessful,
-  Select,
   Store,
 } from '@ngxs/store';
 import { GameAction } from '../../state/game.actions';
 import { GameState } from '../../state/game.state';
-import { storedCity } from '../../main-page.config';
-import {
-  isNullOrEmptyString,
-  isNullOrUndefined,
-} from '../../../../shared/utils';
+import { isNullOrEmptyString } from '../../../../shared/utils';
 import { MapTimerComponent } from '../../components/map-timer/map-timer.component';
 import { MapDialogComponent } from '../../components/map-dialog/map-dialog.component';
-import { Router } from '@angular/router';
 import { UsedCitiesListComponent } from '../../components/used-cities-list/used-cities-list.component';
 import * as config from '../../main-page.config';
+import { LanguageTypeName } from '../../../../shared/models';
 
 @Component({
   selector: 'app-map-game',
@@ -151,6 +125,9 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly step$: Observable<Step> = this._store.select(GameState.step$);
   readonly cityName$: Observable<string> = this._store.select(GameState.city$);
   readonly score$: Observable<number> = this._store.select(GameState.score$);
+  readonly language$: Observable<LanguageTypeName> = this._store.select(
+    GameState.language$
+  );
 
   readonly openDrawer = signal(false);
   readonly gameOver = signal(false);
@@ -171,7 +148,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     return this._store.selectSnapshot(GameState.step$);
   }
 
-  get currentLanguage(): string {
+  get currentLanguage(): LanguageTypeName {
     return this._store.selectSnapshot(GameState.currentLanguage$);
   }
 
@@ -182,6 +159,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly isNullOrEmptyString = isNullOrEmptyString;
   readonly getCityLastLetter = getCityLastLetter;
   readonly deleteCharacters = deleteCharacters;
+  readonly getContentByLanguage = getContentByLanguage;
+
+  readonly content = content;
+  readonly config = config;
 
   private map!: L.Map;
   public mapOptions!: L.MapOptions;
@@ -193,8 +174,8 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   baseLayers = {
-    'Cartographic map': MapConfig.OFFERS_OPEN_STREET_MAP,
-    'Map view': MapConfig.OFFERS_HYBRID_MAP,
+    'Cartographic map': content.OFFERS_OPEN_STREET_MAP,
+    'Map view': content.OFFERS_HYBRID_MAP,
   };
   overlays = {
     // 'Vehicle': this.vehicleMarker
@@ -227,7 +208,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       center: L.latLng(51.505, 14.01),
       zoom: 12,
       zoomControl: false,
-      layers: [MapConfig.OFFERS_OPEN_STREET_MAP],
+      layers: [content.OFFERS_OPEN_STREET_MAP],
     };
   }
 
@@ -245,13 +226,23 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       })
     );
 
-    const provider = new OpenStreetMapProvider();
+    const provider = new OpenStreetMapProvider({
+      params: {
+        'accept-language': `${getContentByLanguage([
+          this.currentLanguage,
+          this.config.GAME_ACCEPT_LANGUAGE,
+        ])}`,
+      },
+    });
     const searchControl = GeoSearchControl({
       provider,
       style: 'bar',
       autoCompleteDelay: 300,
       showMarker: false,
-      searchLabel: 'Поиск',
+      searchLabel: getContentByLanguage([
+        this.currentLanguage,
+        this.content.MAP_GAME_CONFIG_SEARCH,
+      ]),
     });
     this.provider = provider;
     this.map.addControl(searchControl);
@@ -262,20 +253,12 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     this._store.dispatch(
       new GameAction.SetCityName(getRandomSymbol(this.currentLanguage))
     );
-    //MapGameFormsService;
-    //this._store.dispatch(new GameAction.Error);
   }
+
   private initSubscriptions(): void {
     this.sendData$
       .pipe(filter(Boolean), debounceTime(300), takeUntil(this._destroy$))
       .subscribe(() => this.findCity());
-    //MapGameFormsService;
-    this.form.valueChanges
-      .pipe(
-        tap((val) => console.log(111111, 'val', val)),
-        takeUntil(this._destroy$)
-      )
-      .subscribe();
 
     this.city$$
       .pipe(
@@ -398,34 +381,23 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     this._actions
       .pipe(
         ofActionSuccessful(GameAction.GetCityListSuccess),
-        //tap((val) => console.log(111111, 'Проверить список городов', val)),
         withLatestFrom(this.step$),
         map(([, step]) => step),
-        //switchMap(() => this.step$),
-        //tap((val) => console.log(111111, 'Проверить шаг', val)),
         filter((step) => step === 'opponent'),
-        //distinctUntilChanged(),
-        //take(1),
-        //tap((val) => console.log(111111, 'GetCityListSuccess', val)),
         withLatestFrom(this.storedCityList$),
         map(([, storedCityList]) => storedCityList),
-        //switchMap(() => this.storedCityList$),
         takeUntil(this._destroy$)
       )
       .subscribe((storedCityList) => {
-        //console.log(1111111, 'storedCityList', storedCityList);
         const cityList = storedCityList as ICityDBModel[];
 
         const index = cityList.findIndex(
           (town) => town.name[0].toLowerCase() === getCityLastLetter(this.city)
         );
 
-        if (index !== -1) {
-          //console.log('index', index);
-          this.city$$.next(cityList[index]);
-        } else {
-          this.repeatSearchCity$$.next(getCityLastLetter(this.city));
-        }
+        index !== -1
+          ? this.city$$.next(cityList[index])
+          : this.repeatSearchCity$$.next(getCityLastLetter(this.city));
       });
   }
 
@@ -454,7 +426,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       this.step === 'user'
     ) {
       this.showDialogWindow(
-        `Введите город на букву ${getCityLastLetter(this.city).toUpperCase()}`
+        `${getContentByLanguage([
+          this.currentLanguage,
+          this.content.MAP_GAME_CONFIG_USER_MOVE,
+        ])} ${getCityLastLetter(this.city).toUpperCase()}`
       );
       return;
     }
@@ -478,7 +453,12 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
       this.cityIsExist(target);
     } else {
-      this.showDialogWindow('Не могу найти такого города. Попробуйте другой');
+      this.showDialogWindow(
+        `${getContentByLanguage([
+          this.currentLanguage,
+          this.content.MAP_GAME_CONFIG_CANT_FIND_THE_CITY,
+        ])}`
+      );
     }
   }
 
@@ -491,7 +471,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     if (!!townIsUsed) {
       if (this.step === 'user') {
         this.showDialogWindow(
-          `${town?.name} - данный город уже был использован. Он есть в списке ранее использованных городов. Введите другой`
+          `${town?.name} - ${getContentByLanguage([
+            this.currentLanguage,
+            this.content.MAP_GAME_CONFIG_THIS_CITY_IS_USED,
+          ])}`
         );
         return;
       }
@@ -501,7 +484,12 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
     !!town
       ? this.setCity(town)
-      : this.showDialogWindow('Не могу найти такого города. Попробуйте другой');
+      : this.showDialogWindow(
+          `${getContentByLanguage([
+            this.currentLanguage,
+            this.content.MAP_GAME_CONFIG_CANT_FIND_THE_CITY,
+          ])}`
+        );
   }
 
   private setCity(city: ICityModel): void {
@@ -527,7 +515,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
   setGameOver(): void {
     this.gameOver.set(true);
-    const header = 'Игра окончена';
+    const header = `${getContentByLanguage([
+      this.currentLanguage,
+      this.content.MAP_GAME_CONFIG_GAME_OVER,
+    ])}`;
 
     this.showDialogEndGame(header);
   }
@@ -544,8 +535,14 @@ export class MapGameComponent implements OnInit, AfterViewInit {
 
     const header =
       this.step === 'opponent'
-        ? 'Время вышло! Вы обыграли соперника'
-        : 'Время вышло';
+        ? `${getContentByLanguage([
+            this.currentLanguage,
+            this.content.MAP_GAME_CONFIG_TIMES_UP_WIN,
+          ])}`
+        : `${getContentByLanguage([
+            this.currentLanguage,
+            this.content.MAP_GAME_CONFIG_TIMES_UP,
+          ])}`;
 
     this.showDialogEndGame(header);
   }
@@ -566,7 +563,14 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   showDialogWindow(content: string): void {
-    this.dialogWindow({ type: 'window', header: 'Ошибка', content })
+    this.dialogWindow({
+      type: 'window',
+      header: `${getContentByLanguage([
+        this.currentLanguage,
+        this.content.MAP_GAME_CONFIG_ERROR,
+      ])}`,
+      content,
+    })
       .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {

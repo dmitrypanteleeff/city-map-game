@@ -1,27 +1,17 @@
-import { inject, Injectable, NgModule } from '@angular/core';
-import {
-  Action,
-  NgxsModule,
-  NgxsOnInit,
-  Selector,
-  State,
-  StateContext,
-} from '@ngxs/store';
+import { inject, Injectable } from '@angular/core';
+import { Action, Selector, State, StateContext } from '@ngxs/store';
 
 //import { IOptionsModel } from '../types/options.interface';
 import { GameAction } from './game.actions';
 
-import { catchError, delay, takeUntil, tap } from 'rxjs';
-import { ICityDBModel, ICityModel, IOptionsModel, Step } from '../models';
+import { catchError, takeUntil, tap } from 'rxjs';
+import { ICityDBModel, IOptionsModel, Step } from '../models';
 import { MapGameApiService } from '../services/map-game-api.services';
-import { TuiAlertService, TuiDialogService } from '@taiga-ui/core';
+import { TuiAlertService } from '@taiga-ui/core';
 import { DestroyService } from '../../../shared/services/destroy.service';
 import { storedCity } from '../main-page.config';
-import {
-  getCityLastLetter,
-  getRandomSymbol,
-  removeUnnecessaryCharacters,
-} from '../utils';
+import { getCityLastLetter, removeUnnecessaryCharacters } from '../utils';
+import { LanguageTypeName } from '../../../shared/models';
 //import { ICityModel } from '../types/cities.interface';
 
 export interface GameStateModel {
@@ -71,7 +61,7 @@ export class GameState {
   }
 
   @Selector()
-  static currentLanguage$(state: GameStateModel): string {
+  static currentLanguage$(state: GameStateModel): LanguageTypeName {
     return state.options.currentLanguage;
   }
 
@@ -88,6 +78,11 @@ export class GameState {
   @Selector()
   static step$(state: GameStateModel): Step {
     return state.step;
+  }
+
+  @Selector()
+  static language$(state: GameStateModel): LanguageTypeName {
+    return state.options.currentLanguage;
   }
 
   @Action(GameAction.GetCityList)
@@ -123,10 +118,6 @@ export class GameState {
         town.name[0].toLowerCase() === getCityLastLetter(city)
     );
 
-    // const cityСorresponds = cities.includes(
-    //   (town: ICityDBModel) =>
-    //     town.name[0].toLowerCase() === getCityLastLetter(city)
-    // );
     if (index !== -1) {
       cities = cities.filter(
         (town) => town.name[0].toLowerCase() === getCityLastLetter(city)
@@ -172,10 +163,16 @@ export class GameState {
   @Action(GameAction.ToggleStep)
   ToggleStep(ctx: StateContext<GameStateModel>) {
     let { step } = ctx.getState();
-    //debugger;
     step = step === 'user' ? 'opponent' : 'user';
-
     ctx.patchState({ step });
+  }
+
+  @Action(GameAction.ChangeLanguage)
+  ChangeLanguage(ctx: StateContext<GameStateModel>) {
+    let { options } = ctx.getState();
+    let { currentLanguage } = options;
+    currentLanguage = currentLanguage === 'rus' ? 'eng' : 'rus';
+    ctx.patchState({ options: { ...options, currentLanguage } });
   }
 
   @Action(GameAction.SetCityName)

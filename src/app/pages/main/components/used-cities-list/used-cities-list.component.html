@@ -1,11 +1,17 @@
 <ng-container
   *tuiLet="{
     breakpoint: _breakpoint$ | async,
+    language: language$ | async,
   } as ctx"
 >
   <header class="header sticky-top">
     <h2 class="d-flex justify-content-between pt-2 pb-2" tuiHeader>
-      <div class="h4">Использованные города</div>
+      <div class="h4">
+        {{
+          [ctx.language, content.USED_CITIES_LIST_CONFIG_TITLE]
+            | func : getContentByLanguage
+        }}
+      </div>
 
       <ng-container *ngIf="ctx.breakpoint === 'mobile'">
         <div tuiAccessories>

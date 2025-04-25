@@ -1,14 +1,26 @@
+import { IConfigContent } from '../../shared/models';
 import { ICityDBModel } from './models';
 
 export const GAME_ADD_SCORE: number = 50;
 
-export const GAME_START_TIME: number = 7000;
+export const GAME_START_TIME: number = 15;
 
-export const GAME_SCORE_FOR_USER: number = 100;
+export const GAME_SCORE_FOR_USER: number = 30;
 
-export const GAME_SCORE_FOR_COMPUTER: number = 50;
+export const GAME_SCORE_FOR_COMPUTER: number = 15;
 
 export const GAME_USER_WIN: number = 1500;
+
+export const GAME_ACCEPT_LANGUAGE: IConfigContent[] = [
+  {
+    language: 'rus',
+    content: 'ru',
+  },
+  {
+    language: 'eng',
+    content: 'en',
+  },
+];
 
 export const storedCity: ICityDBModel[] = [
   {

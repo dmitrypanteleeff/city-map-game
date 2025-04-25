@@ -1,19 +1,29 @@
-<form [formGroup]="form" (submit)="sendData$.next(true)">
-  <p>Ваша количество очков {{ data }}</p>
-
-  <ng-container
-    *tuiLet="{
-        breakpoint: _breakpoint$ | async,
+<ng-container
+  *tuiLet="{
+      breakpoint: _breakpoint$ | async,
+      language: language$ | async,
     } as ctx"
-  >
+>
+  <form [formGroup]="form" (submit)="sendData$.next(true)">
+    <p>
+      {{
+        [ctx.language, content.SCORE_FORM_CONFIG_SCORE]
+          | func : getContentByLanguage
+      }}
+      {{ data }}
+    </p>
+
     <tui-textfield
       class="border"
       [tuiTextfieldSize]="ctx.breakpoint | func : resizeElements"
     >
       <input
-        placeholder="Введите имя"
         tuiTextfield
         formControlName="user"
+        [placeholder]="
+          [ctx.language, content.SCORE_FORM_CONFIG_INPUT_PLACEHOLDER]
+            | func : getContentByLanguage
+        "
         [invalid]="userFormCtrl.invalid"
       />
     </tui-textfield>
@@ -27,7 +37,10 @@
       [disabled]="userFormCtrl.invalid"
       (click)="sendData$.next(true)"
     >
-      Отправить
+      {{
+        [ctx.language, content.SCORE_FORM_CONFIG_BTN_TEXT]
+          | func : getContentByLanguage
+      }}
     </button>
-  </ng-container>
-</form>
+  </form>
+</ng-container>

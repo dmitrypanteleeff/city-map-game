@@ -6,6 +6,7 @@ import {
 } from '@angular/core';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { injectContext } from '@taiga-ui/polymorpheus';
+import * as content from './score-form.config';
 import {
   TuiBreakpointService,
   TuiButton,
@@ -14,7 +15,7 @@ import {
   TuiTextfield,
 } from '@taiga-ui/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
-import { resizeElements } from '../../utils';
+import { getContentByLanguage, resizeElements } from '../../utils';
 import { TuiLet } from '@taiga-ui/cdk';
 import { AsyncPipe } from '@angular/common';
 import { FunctionPipe } from '../../../../shared/pipes';
@@ -23,14 +24,17 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  Observable,
   Subject,
   switchMap,
   takeUntil,
-  tap,
 } from 'rxjs';
 import { isNullOrUndefined } from '../../../../shared/utils';
 import { RecordsApiService } from '../../services/records-api.services';
 import { TuiFieldErrorPipe, tuiValidationErrorsProvider } from '@taiga-ui/kit';
+import { LanguageTypeName } from '../../../../shared/models';
+import { GameState } from '../../state/game.state';
+import { Store } from '@ngxs/store';
 
 @Component({
   selector: 'app-score-form',
@@ -57,6 +61,7 @@ import { TuiFieldErrorPipe, tuiValidationErrorsProvider } from '@taiga-ui/kit';
 })
 export class ScoreFormComponent implements OnInit {
   private readonly _form = inject(MapGameFormsService);
+  private readonly _store = inject(Store);
 
   readonly _breakpoint$ = inject(TuiBreakpointService);
   private readonly _destroy$ = inject(DestroyService);
@@ -64,8 +69,13 @@ export class ScoreFormComponent implements OnInit {
 
   readonly sendData$ = new Subject<boolean>();
 
+  readonly language$: Observable<LanguageTypeName> = this._store.select(
+    GameState.language$
+  );
+
   public readonly context = injectContext<TuiDialogContext<number, number>>();
   readonly form = this._form.createScoreForm();
+  readonly content = content;
 
   protected get data(): number {
     return this.context.data;
@@ -76,6 +86,7 @@ export class ScoreFormComponent implements OnInit {
   }
 
   readonly resizeElements = resizeElements;
+  readonly getContentByLanguage = getContentByLanguage;
 
   sendData(): void {}
 
@@ -92,10 +103,6 @@ export class ScoreFormComponent implements OnInit {
   }
 
   private initSubscriptions() {
-    this.userFormCtrl.valueChanges
-      .pipe(takeUntil(this._destroy$))
-      .subscribe((val) => console.log(111111, 'val', this.userFormCtrl));
-
     this.sendData$
       .pipe(
         filter(
@@ -103,7 +110,6 @@ export class ScoreFormComponent implements OnInit {
             !isNullOrUndefined(this.userFormCtrl.value) && Boolean(value)
         ),
         debounceTime(300),
-        tap((val) => console.log('send')),
         switchMap(() =>
           this._apiFirebase.addRecord(this.userFormCtrl.value, this.data)
         ),
@@ -113,7 +119,6 @@ export class ScoreFormComponent implements OnInit {
       .subscribe(() => {
         this.userFormCtrl.reset();
         this.userFormCtrl.updateValueAndValidity();
-        console.log('Отправил');
         this.context.completeWith(123);
       });
   }

@@ -3,21 +3,12 @@ import {
   Component,
   inject,
   OnInit,
+  signal,
 } from '@angular/core';
 import { Actions, ofActionSuccessful, Store } from '@ngxs/store';
 import { DestroyService } from '../../../../shared/services/destroy.service';
 import { GameState } from '../../state/game.state';
-import {
-  BehaviorSubject,
-  delay,
-  filter,
-  map,
-  Observable,
-  Subject,
-  take,
-  takeUntil,
-  tap,
-} from 'rxjs';
+import { BehaviorSubject, delay, map, Observable, takeUntil, tap } from 'rxjs';
 import { TuiSkeleton } from '@taiga-ui/kit';
 import { AsyncPipe, CommonModule, JsonPipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -30,8 +21,9 @@ import { TuiTable } from '@taiga-ui/addon-table';
 import { ScoreFormComponent } from '../score-form/score-form.component';
 import { TuiLet } from '@taiga-ui/cdk';
 import { FunctionPipe } from '../../../../shared/pipes';
-import { showSendRecordBtn } from '../../utils';
-import { isNotNullOrEmptyArray } from '../../../../shared/utils';
+import { getContentByLanguage, showSendRecordBtn } from '../../utils';
+import { LanguageTypeName } from '../../../../shared/models';
+import * as contentConfig from './map-dialog.config';
 
 @Component({
   selector: 'app-map-dialog',
@@ -47,7 +39,6 @@ import { isNotNullOrEmptyArray } from '../../../../shared/utils';
     TuiSkeleton,
   ],
   templateUrl: './map-dialog.component.html',
-  styleUrl: './map-dialog.component.less',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [DestroyService],
 })
@@ -58,9 +49,13 @@ export class MapDialogComponent implements OnInit {
   private readonly _apiFirebase = inject(RecordsApiService);
 
   readonly score$: Observable<number> = this._store.select(GameState.score$);
+  readonly language$: Observable<LanguageTypeName> = this._store.select(
+    GameState.language$
+  );
+
   readonly showBtn$$ = new BehaviorSubject<boolean>(true);
   records$!: Observable<RecordModel[]>;
-  loading: boolean = true;
+  readonly loading = signal(true);
 
   get score(): number {
     return this._store.selectSnapshot(GameState.score$);
@@ -76,6 +71,9 @@ export class MapDialogComponent implements OnInit {
   });
 
   readonly showSendRecordBtn = showSendRecordBtn;
+  readonly getContentByLanguage = getContentByLanguage;
+
+  readonly contentConfig = contentConfig;
 
   resetGame(): void {
     this.context.completeWith({ type: 'fullscreen', header: '' });
@@ -97,13 +95,11 @@ export class MapDialogComponent implements OnInit {
   ngOnInit(): void {
     if (this.typeDialog === 'fullscreen') {
       this.records$ = this._apiFirebase.getRecords().pipe(
-        //take(1),
-        tap((val) => console.log(111111, 'val', val)),
-        delay(5000),
+        delay(3000),
         map((arr) =>
           arr.sort((a, b) => b.score - a.score).filter((_, index) => index < 10)
         ),
-        tap(() => (this.loading = false))
+        tap(() => this.loading.set(false))
       );
     }
 

@@ -8,7 +8,8 @@
   <ng-template [ngSwitchCase]="'fullscreen'">
     <ng-container
       *tuiLet="{
-        score: score$ | async
+        score: score$ | async,
+        language: language$ | async,
       } as ctx"
     >
       <div class="d-flex">
@@ -18,14 +19,23 @@
               class="d-flex flex-column align-items-center justify-content-center rounded-5 border p-4"
             >
               <h1>{{ header }}</h1>
-              <p>Количество очков {{ ctx.score }}</p>
+              <p>
+                {{
+                  [ctx.language, contentConfig.MAP_DIALOG_CONFIG_SCORE]
+                    | func : getContentByLanguage
+                }}
+                {{ ctx.score }}
+              </p>
               <button
                 tuiButton
                 type="button"
                 [routerLink]="['/start']"
                 (click)="resetGame()"
               >
-                В главное меню
+                {{
+                  [ctx.language, contentConfig.MAP_DIALOG_CONFIG_MENU]
+                    | func : getContentByLanguage
+                }}
               </button>
 
               <ng-container
@@ -41,7 +51,10 @@
                   type="button"
                   (click)="showDialog()"
                 >
-                  Записать свой рекорд
+                  {{
+                    [ctx.language, contentConfig.MAP_DIALOG_CONFIG_RECORD_SCORE]
+                      | func : getContentByLanguage
+                  }}
                 </button>
               </ng-container>
             </div>
@@ -49,20 +62,51 @@
 
           <div
             class="row rounded-5 border mt-4 mt-md-5"
-            [tuiSkeleton]="loading"
+            [tuiSkeleton]="loading()"
           >
             <div
               class="d-flex flex-column align-items-center justify-content-center rounded-5 border p-4"
             >
-              <h2 class="text-center mb-2">Таблица рекордов</h2>
-              <div class="h5 text-center mb-4">(Собраны лучшие 10)</div>
+              <h2 class="text-center mb-2">
+                {{
+                  [ctx.language, contentConfig.MAP_DIALOG_CONFIG_TABLE_RECORDS]
+                    | func : getContentByLanguage
+                }}
+              </h2>
+              <div class="h5 text-center mb-4">
+                ({{
+                  [ctx.language, contentConfig.MAP_DIALOG_CONFIG_TABLE_TOP_10]
+                    | func : getContentByLanguage
+                }})
+              </div>
 
               <table tuiTable class="table">
                 <thead>
                   <tr tuiThGroup>
-                    <th tuiTh>Место</th>
-                    <th tuiTh>Имя</th>
-                    <th tuiTh>Очки</th>
+                    <th tuiTh>
+                      {{
+                        [
+                          ctx.language,
+                          contentConfig.MAP_DIALOG_CONFIG_TABLE_HR_PLACE
+                        ] | func : getContentByLanguage
+                      }}
+                    </th>
+                    <th tuiTh>
+                      {{
+                        [
+                          ctx.language,
+                          contentConfig.MAP_DIALOG_CONFIG_TABLE_HR_NAME
+                        ] | func : getContentByLanguage
+                      }}
+                    </th>
+                    <th tuiTh>
+                      {{
+                        [
+                          ctx.language,
+                          contentConfig.MAP_DIALOG_CONFIG_TABLE_HR_SCORE
+                        ] | func : getContentByLanguage
+                      }}
+                    </th>
                   </tr>
                   <ng-container
                     *ngFor="let item of records$ | async; let id = index"

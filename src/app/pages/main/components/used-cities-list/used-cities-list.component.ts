@@ -15,12 +15,15 @@ import {
   TuiButton,
   TuiIcon,
 } from '@taiga-ui/core';
+import * as content from './used-cities-list.config';
 import { Store } from '@ngxs/store';
 import { DestroyService } from '../../../../shared/services/destroy.service';
 import { Observable, switchMap, takeUntil } from 'rxjs';
 import { ICityDBModel } from '../../models';
 import { GameState } from '../../state/game.state';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { LanguageTypeName } from '../../../../shared/models';
+import { getContentByLanguage } from '../../utils';
 
 @Component({
   selector: 'app-used-cities-list',
@@ -52,9 +55,16 @@ export class UsedCitiesListComponent {
     GameState.usedCityList$
   );
 
+  readonly language$: Observable<LanguageTypeName> = this._store.select(
+    GameState.language$
+  );
+
   get usedCityList(): ICityDBModel[] {
     return this._store.selectSnapshot(GameState.usedCityList$);
   }
+
+  readonly getContentByLanguage = getContentByLanguage;
+  readonly content = content;
 
   usedCityListSig = signal<ICityDBModel[]>([{ name: '' }]);
 

@@ -1,5 +1,7 @@
+import { LanguageTypeName } from '../../../shared/models';
+
 /** Интерфейс опций игры */
 export interface IOptionsModel {
-  currentLanguage: string;
+  currentLanguage: LanguageTypeName;
   languages: string[];
 }

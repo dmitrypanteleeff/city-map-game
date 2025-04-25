@@ -1,88 +1,123 @@
-<div class="container">
-  <div class="row rounded-5 border">
-    <div
-      class="d-flex flex-column align-items-center justify-content-center min-vh-100 rounded-5 border"
-    >
-      <div class="row w-100">
-        <h1 class="h4 text-center mt-3">
-          Правила игры в «Города» — просто и понятно
-        </h1>
-      </div>
+<ng-container
+  *tuiLet="{
+    language: language$ | async,
+  } as ctx"
+>
+  <div class="container">
+    <div class="row rounded-5 border">
+      <div
+        class="d-flex flex-column align-items-center justify-content-center min-vh-100 rounded-5 border"
+      >
+        <div class="row w-100">
+          <h1 class="h4 text-center mt-3">
+            {{
+              [ctx.language, content.START_PAGE_CONFIG_TITLE]
+                | func : getContentByLanguage
+            }}
+          </h1>
+        </div>
 
-      <div class="row w-100">
-        <div class="grid-wrap banner-wrapper__content w-100">
-          <div>
-            <h2 class="h5">Об игре:</h2>
-          </div>
-          <div>
-            <p>
-              «Города» — это игра, где нужно называть города по цепочке: каждый
-              следующий город должен начинаться на букву, которой закончился
-              предыдущий.
-            </p>
+        <div class="row w-100">
+          <div class="grid-wrap banner-wrapper__content w-100">
+            <div>
+              <h2 class="h5">
+                {{
+                  [ctx.language, content.START_PAGE_CONFIG_SUBTITLE_1]
+                    | func : getContentByLanguage
+                }}:
+              </h2>
+            </div>
+            <div>
+              <p>
+                {{
+                  [ctx.language, content.START_PAGE_CONFIG_TEXT_1]
+                    | func : getContentByLanguage
+                }}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="row w-100">
-        <div class="grid-wrap banner-wrapper__content w-100">
-          <div><h2 class="h5">Как играть:</h2></div>
-          <div>
-            <p>
-              1. **Первый игрок** говорит любой город, например, «Москва».
-              <br />
-              2. **Следующий** придумывает город на последнюю букву — «Москва»
-              заканчивается на **А**, значит, можно сказать «Астрахань». <br />
-              3. **Дальше по цепочке**: «Астрахань» → на **Н** (Нью-Йорк),
-              «Нью-Йорк» → на **К** (Киев), «Киев» → на **В** (Воронеж) и так
-              далее. <br />
-              4. **Повторяться нельзя** — если город уже называли, его нельзя
-              использовать снова. <br />
-              5. **Только реальные города** — никаких «Гадюкино» или «Змеёвска»
-              (если их нет на карте). <br />
-              6. За каждый названный город получаешь очки. Чем больше городов
-              назовёёшь, тем больше шанс попасть в рейтинговую таблицу.<br />
-            </p>
+        <div class="row w-100">
+          <div class="grid-wrap banner-wrapper__content w-100">
+            <div>
+              <h2 class="h5">
+                {{
+                  [ctx.language, content.START_PAGE_CONFIG_SUBTITLE_2]
+                    | func : getContentByLanguage
+                }}:
+              </h2>
+            </div>
+            <div>
+              <p
+                [innerHTML]="
+                  [ctx.language, content.START_PAGE_CONFIG_TEXT_2]
+                    | func : getContentByLanguage
+                "
+              ></p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="row w-100">
-        <div class="grid-wrap banner-wrapper__content w-100">
-          <div><h2 class="h5">Важные нюансы:</h2></div>
-          <div>
-            <p>
-              Если город заканчивается на **Ь, Ы, Ъ, Й** — берем предпоследнюю
-              букву: - «Тюмень» → последняя буква **Ь**, значит, следующий город
-              на **Н**. <br />
-            </p>
+        <ng-container *ngIf="ctx.language === 'rus'">
+          <div class="row w-100">
+            <div class="grid-wrap banner-wrapper__content w-100">
+              <div>
+                <h2 class="h5">
+                  {{
+                    [ctx.language, content.START_PAGE_CONFIG_SUBTITLE_3]
+                      | func : getContentByLanguage
+                  }}:
+                </h2>
+              </div>
+              <div>
+                <p>
+                  {{
+                    [ctx.language, content.START_PAGE_CONFIG_TEXT_3]
+                      | func : getContentByLanguage
+                  }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <div class="row w-100">
+          <div class="grid-wrap banner-wrapper__content w-100">
+            <div>
+              <h2 class="h5">
+                {{
+                  [ctx.language, content.START_PAGE_CONFIG_SUBTITLE_4]
+                    | func : getContentByLanguage
+                }}:
+              </h2>
+            </div>
+            <div>
+              <p>
+                {{
+                  [ctx.language, content.START_PAGE_CONFIG_TEXT_4]
+                    | func : getContentByLanguage
+                }}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="row w-100">
-        <div class="grid-wrap banner-wrapper__content w-100">
-          <div><h2 class="h5">Кто проиграл:</h2></div>
-          <div>
-            <p>
-              Игра завершается автоматически, как только заканчивается
-              отведенное время. Выигрывает тот, кто продержался дольше всех! 🏆
-            </p>
-          </div>
+        <div class="row">
+          <button
+            class="center"
+            tuiButton
+            class="mb-1"
+            type="button"
+            [routerLink]="['/start']"
+          >
+            {{
+              [ctx.language, content.START_PAGE_CONFIG_BTN_MENU]
+                | func : getContentByLanguage
+            }}
+          </button>
         </div>
-      </div>
-
-      <div class="row">
-        <button
-          class="center"
-          tuiButton
-          class="mb-1"
-          type="button"
-          [routerLink]="['/start']"
-        >
-          В меню
-        </button>
       </div>
     </div>
   </div>
-</div>
+</ng-container>

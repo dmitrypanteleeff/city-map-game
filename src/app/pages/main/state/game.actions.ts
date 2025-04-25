@@ -56,6 +56,12 @@ export namespace GameAction {
     constructor() {}
   }
 
+  /* Изменить язык */
+  export class ChangeLanguage {
+    static readonly type = '[MAP_GAME page] Change Language';
+    constructor() {}
+  }
+
   /* Сброс слоя с картой */
   export class ResetFeatureCollection {
     static readonly type = '[MAP_GAME page] Reset Feature Collection';

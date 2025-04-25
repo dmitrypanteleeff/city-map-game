@@ -1,4 +1,5 @@
 import { getRandomNumber } from '.';
+import { LanguageTypeName } from '../../../shared/models';
 import {
   engAlphabet,
   ruAlphabet,
@@ -9,7 +10,7 @@ import {
  * @param alphabet - Алфавит
  * @returns
  */
-export function getRandomSymbol(alphabet: string) {
+export function getRandomSymbol(alphabet: LanguageTypeName) {
   switch (alphabet) {
     case 'eng':
       return engAlphabet[getRandomNumber(engAlphabet.length)];
