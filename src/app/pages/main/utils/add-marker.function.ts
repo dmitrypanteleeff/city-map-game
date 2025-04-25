@@ -11,7 +11,7 @@ export function addMarker(map: L.Map, name: string, y: number, x: number) {
   );
 
   marker.addTo(map).on('click', function (e) {
-    console.log(e.latlng);
+    //console.log(e.latlng);
     /*
     let lat = e.latlng.lat;
     let long = e.latlng.lng;

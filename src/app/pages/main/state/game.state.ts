@@ -107,7 +107,6 @@ export class GameState {
     let { usedCityList, storedCityList, city } = ctx.getState();
 
     cities = removeUnnecessaryCharacters(cities);
-    console.log(111111, 'city in state', city);
 
     usedCityList.forEach((usedCity) => {
       cities = cities.filter((city) => city.name !== usedCity.name);

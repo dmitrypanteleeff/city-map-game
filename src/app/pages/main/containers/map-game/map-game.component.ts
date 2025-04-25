@@ -264,7 +264,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       .pipe(
         filter(Boolean),
         debounceTime(300),
-        tap((val) => console.log(val)),
         switchMap((city) =>
           iif(
             () => checkTypeCityIsCityDBModel(city),
@@ -278,31 +277,18 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         takeUntil(this._destroy$)
       )
       .subscribe((res) => {
-        console.log('res', res);
+        //console.log('res', res);
         this.getCityName(res as any[]);
       });
 
     this.repeatSearchCity$$
-      .pipe(
-        tap((character) =>
-          console.log(111111, 'Повторный запрос before', character)
-        ),
-        delay(5000),
-        tap((character) => console.log(111111, 'Повторный запрос', character)),
-        takeUntil(this._destroy$)
-      )
-      .subscribe((character) => {
-        console.log(1111111, 'GetCityList 2');
-        this._store.dispatch(new GameAction.GetCityList(character));
-      });
+      .pipe(delay(5000), takeUntil(this._destroy$))
+      .subscribe((character) =>
+        this._store.dispatch(new GameAction.GetCityList(character))
+      );
 
     this.lastCityLetter$$
       .pipe(
-        //distinctUntilChanged(),
-        tap((val) => {
-          console.log(1111111, 'lastCityLetter$$', val);
-          // debugger;
-        }),
         filter(Boolean),
         switchMap(() => timer(10000)),
         withLatestFrom(this.lastCityLetter$$, this.storedCityList$),
@@ -313,7 +299,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       )
       .subscribe((obj) => {
         const { character, storedCityList } = obj;
-        //debugger;
         if (
           storedCityList.findIndex(
             (city) => city.name[0].toLowerCase() === character
@@ -324,7 +309,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
           );
           this.city$$.next(storedCityList[index]);
         } else {
-          console.log(1111111, 'GetCityList 1');
           this._store.dispatch(new GameAction.GetCityList(character));
         }
       });
@@ -342,12 +326,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         ofActionCompleted(GameAction.ToggleStep),
         withLatestFrom(this.step$),
         map(([, step]) => step),
-        //switchMap(() => this.step$),
         distinctUntilChanged(),
-        tap((step) => {
-          //debugger;
-          console.log(step);
-        }),
         filter((step) => step === 'opponent'),
 
         takeUntil(this._destroy$)
@@ -370,8 +349,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
               : config.GAME_SCORE_FOR_COMPUTER;
           this._store.dispatch(new GameAction.AddScore(score));
         }),
-        //distinctUntilChanged((prev, curr) => prev.name === curr.name),
-        tap((val) => console.log(4444, val)),
         takeUntil(this._destroy$)
       )
       .subscribe((name) =>
@@ -478,7 +455,7 @@ export class MapGameComponent implements OnInit, AfterViewInit {
         );
         return;
       }
-      console.log('Логика от компа');
+      //console.log('Логика от компа');
       return;
     }
 
@@ -509,7 +486,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   }
 
   stopPropogation(event: Event): void {
-    console.log(1111);
     event.stopImmediatePropagation();
   }
 
@@ -529,7 +505,6 @@ export class MapGameComponent implements OnInit, AfterViewInit {
     }
 
     if (this.gameOver()) {
-      console.log(1111111, ' gameOver', this.gameOver());
       return;
     }
 
@@ -552,12 +527,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
-          console.info(`Dialog emitted data = ${data}`);
-          //this.dialogWindow.complete();
+          // console.info(`Dialog emitted data = ${data}`);
         },
         complete: () => {
-          console.info('Dialog closed');
-          //this._router.navigate(['/start']);
+          // console.info('Dialog closed');
         },
       });
   }
@@ -574,10 +547,10 @@ export class MapGameComponent implements OnInit, AfterViewInit {
       .pipe(takeUntil(this._destroy$))
       .subscribe({
         next: (data) => {
-          console.info(`Dialog emitted data = ${data}`);
+          //console.info(`Dialog emitted data = ${data}`);
         },
         complete: () => {
-          console.info('Dialog closed');
+          //console.info('Dialog closed');
         },
       });
   }
