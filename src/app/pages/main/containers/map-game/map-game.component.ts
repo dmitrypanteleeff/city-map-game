@@ -15,7 +15,7 @@ import { GeoSearchControl, OpenStreetMapProvider } from 'leaflet-geosearch';
 import { TuiLet } from '@taiga-ui/cdk';
 import { MapGameFormsService } from '../../services/map-game-form.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { TuiChip, TuiDrawer, TuiPulse, TuiTooltip } from '@taiga-ui/kit';
+import { TuiChip, TuiDrawer } from '@taiga-ui/kit';
 import {
   tuiDialog,
   TuiIcon,
@@ -76,7 +76,6 @@ import { LanguageTypeName } from '../../../../shared/models';
 @Component({
   selector: 'app-map-game',
   imports: [
-    TuiPulse,
     MapTimerComponent,
     CommonModule,
     LeafletModule,
@@ -87,7 +86,6 @@ import { LanguageTypeName } from '../../../../shared/models';
     TuiTextfield,
     TuiPopup,
     TuiDrawer,
-    TuiTooltip,
     FormsModule,
     TuiLet,
     AsyncPipe,

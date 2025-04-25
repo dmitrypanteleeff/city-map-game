@@ -43,3 +43,8 @@ Thumbs.db
 
 environment.prod.ts
 environment.ts
+
+# Firebase
+/.firebase
+.firebaserc
+firebase.json

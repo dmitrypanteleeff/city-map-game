@@ -10,7 +10,7 @@ import { DestroyService } from '../../../../shared/services/destroy.service';
 import { GameState } from '../../state/game.state';
 import { BehaviorSubject, delay, map, Observable, takeUntil, tap } from 'rxjs';
 import { TuiSkeleton } from '@taiga-ui/kit';
-import { AsyncPipe, CommonModule, JsonPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TuiButton, tuiDialog, TuiDialogContext } from '@taiga-ui/core';
 import { injectContext } from '@taiga-ui/polymorpheus';
@@ -31,7 +31,6 @@ import * as contentConfig from './map-dialog.config';
     AsyncPipe,
     RouterModule,
     TuiButton,
-    JsonPipe,
     CommonModule,
     TuiTable,
     TuiLet,

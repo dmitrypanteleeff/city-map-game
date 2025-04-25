@@ -33,6 +33,14 @@
               | func : getContentByLanguage
           }}
         </button>
+
+        <p
+          class="mt-3"
+          [innerHTML]="
+            [ctx.language, content.START_PAGE_CONFIG_TEXT_VPN]
+              | func : getContentByLanguage
+          "
+        ></p>
       </div>
     </div>
   </div>

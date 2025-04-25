@@ -1,7 +1,7 @@
 import { IConfigContent } from '../../shared/models';
 import { ICityDBModel } from './models';
 
-export const GAME_ADD_SCORE: number = 50;
+export const GAME_ADD_SCORE: number = 25;
 
 export const GAME_START_TIME: number = 15;
 
