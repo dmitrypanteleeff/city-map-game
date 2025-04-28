@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  ViewEncapsulation,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { TuiButton } from '@taiga-ui/core';
 import { getContentByLanguage } from '../main/utils';
@@ -22,6 +27,8 @@ import { AsyncPipe, CommonModule } from '@angular/common';
     CommonModule,
   ],
   templateUrl: './options-page.component.html',
+  styleUrls: ['./options-page.component.less'],
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OptionsPageComponent {

@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  ViewEncapsulation,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { Store } from '@ngxs/store';
 import { TuiButton } from '@taiga-ui/core';
@@ -16,6 +21,8 @@ import * as content from './start-page.config';
   selector: 'app-start-page',
   imports: [RouterModule, TuiButton, AsyncPipe, FunctionPipe, TuiLet],
   templateUrl: './start-page.component.html',
+  styleUrls: ['./start-page.component.less'],
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StartPageComponent {

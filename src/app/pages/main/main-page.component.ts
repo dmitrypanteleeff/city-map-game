@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  ViewEncapsulation,
+} from '@angular/core';
 import { MapGameComponent } from './containers/map-game/map-game.component';
 import { TuiBreakpointService } from '@taiga-ui/core';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -16,6 +21,8 @@ import { UsedCitiesListComponent } from './components/used-cities-list/used-citi
     CommonModule,
   ],
   templateUrl: './main-page.component.html',
+  styleUrls: ['./main-page.component.less'],
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [DestroyService],
 })
