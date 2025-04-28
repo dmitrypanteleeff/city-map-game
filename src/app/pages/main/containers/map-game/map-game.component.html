@@ -12,6 +12,8 @@
       leaflet
       [leafletOptions]="mapOptions"
       (leafletMapReady)="onMapReady($event)"
+      (leafletMapZoomStart)="handleMapZoomStart(map)"
+      (leafletMapZoomEnd)="handleMapZoomEnd(map)"
     >
       <div
         class="container position-relative d-flex flex-column justify-content-between map-game__content h-100"

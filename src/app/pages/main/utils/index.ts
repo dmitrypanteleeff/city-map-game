@@ -10,3 +10,5 @@ export { showTimerOrInfinity } from './show-timer-or-infinity.function';
 export { showSendRecordBtn } from './show-send-record-btn.function';
 export { deleteCharacters } from './delete-characters.function';
 export { getContentByLanguage } from './get-content.function';
+export { handleMapZoomEnd } from './handle-map-zoom-end.function';
+export { handleMapZoomStart } from './handle-map-zoom-start.function';

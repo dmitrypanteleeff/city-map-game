@@ -54,6 +54,8 @@ import {
   getRandomSymbol,
   prepeareCityForSearching,
   resizeElements,
+  handleMapZoomStart,
+  handleMapZoomEnd,
 } from '../../utils';
 import { ICityDBModel, ICityModel, Step } from '../../models';
 import { AsyncPipe, CommonModule } from '@angular/common';
@@ -158,11 +160,13 @@ export class MapGameComponent implements OnInit, AfterViewInit {
   readonly getCityLastLetter = getCityLastLetter;
   readonly deleteCharacters = deleteCharacters;
   readonly getContentByLanguage = getContentByLanguage;
+  readonly handleMapZoomStart = handleMapZoomStart;
+  readonly handleMapZoomEnd = handleMapZoomEnd;
 
   readonly content = content;
   readonly config = config;
 
-  private map!: L.Map;
+  public map!: L.Map;
   public mapOptions!: L.MapOptions;
   private provider: any;
 
